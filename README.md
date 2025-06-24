@@ -1,71 +1,102 @@
-<<<<<<< HEAD
-# final
-=======
-# Course Recommendations Page
+# A2000 LMS (Learning Management System)
 
-A modern, responsive course recommendation page inspired by Udemy's layout.
+A modern, full-featured Learning Management System for course management, student progress tracking, and admin/instructor workflows. Built with a Flask backend and a responsive, interactive frontend.
 
-## Project Structure
+---
 
+## 🚀 Features
+- **User Roles:** Admin, Instructor, Student
+- **Course Management:** Create, edit, and delete courses and modules
+- **Module & File Management:** Upload/download/delete files per module
+- **Dynamic Course Details:** Pixel-perfect, interactive course details page
+- **Admin Dashboard:** User, course, and announcement management
+- **Profile Management:** Edit user profile and password
+- **Authentication:** Login, registration, and role-based access
+- **Responsive UI:** Modern, mobile-friendly design
+- **YouTube Video Integration:** Add and display course intro videos
+- **Announcements:** Post and view course-wide announcements
+
+---
+
+## 🛠️ Tech Stack
+- **Backend:** Python, Flask, Flask-SQLAlchemy, Flask-CORS
+- **Frontend:** HTML5, CSS3 (custom + Tailwind utility classes), JavaScript (ES6)
+- **Database:** SQLite (default, easy to swap for PostgreSQL/MySQL)
+- **Other:** Git, GitHub, RESTful API, Jinja2 (for backend templates)
+
+---
+
+## 📁 Directory Structure
 ```
-course-recommendations/
-├── css/
-│   └── styles.css
-├── js/
-│   └── main.js
-├── images/
-│   ├── ai-foundations.jpg
-│   ├── erp-essentials.jpg
-│   ├── cyber-security.jpg
-│   ├── iot-basics.jpg
-│   ├── ev-technology.jpg
-│   └── drone-technology.jpg
-└── index.html
+final-main-2/
+├── course-recommendations/   # Main frontend app (HTML, CSS, JS, images)
+├── lms-backend/              # Flask backend (API, DB, static, templates)
+├── images/                   # Shared images
+├── js/                       # Shared JS (if any)
+├── css/                      # Shared CSS (if any)
+├── login.html, register.html, profile.html, ...
+├── README.md                 # This file
+├── requirements.txt          # Python dependencies
+└── ...
 ```
 
-## Setup Instructions
+---
 
-1. Add course images to the `images` directory:
-   - `ai-foundations.jpg` - AI/neural networks themed image
-   - `erp-essentials.jpg` - ERP dashboard or business management image
-   - `cyber-security.jpg` - Security/lock/firewall themed image
-   - `iot-basics.jpg` - IoT devices or network illustration
-   - `ev-technology.jpg` - EV charging or electric car image
-   - `drone-technology.jpg` - Drone or aerial mapping image
+## ⚙️ Setup Instructions
 
-2. Image Requirements:
-   - Recommended size: 480x270 pixels (16:9 aspect ratio)
-   - Format: JPG or PNG
-   - File size: Optimize for web (under 200KB per image)
+### 1. Clone the repository
+```sh
+git clone https://github.com/shyamisai/final-lms.git
+cd final-lms
+```
 
-3. Running the Project:
-   - Simply open `index.html` in a web browser
-   - No server required as this is a static page
+### 2. Python Environment & Dependencies
+- Ensure you have Python 3.8+
+- (Recommended) Create a virtual environment:
+  ```sh
+  python -m venv venv
+  source venv/bin/activate  # On Windows: venv\Scripts\activate
+  ```
+- Install dependencies:
+  ```sh
+  pip install -r requirements.txt
+  ```
 
-## Features
+### 3. Database Setup
+- By default, uses SQLite. The DB will be created automatically on first run.
+- To reset or seed the DB, use scripts in `lms-backend/` (e.g., `reset_db.py`).
 
-- Responsive grid layout
-- Modern card design with hover effects
-- Interactive "Learn" and "Register" tags
-- Mobile-friendly design
-- Clean typography using Inter font
-- Smooth animations and transitions
+### 4. Running the Backend (Flask API)
+```sh
+cd lms-backend
+python app.py
+```
+- The API will run at `http://localhost:5001/`
 
-## Browser Support
+### 5. Running the Frontend (Static Server)
+- From the project root, run:
+  ```sh
+  python -m http.server 5500
+  ```
+- Open `http://localhost:5500/course-recommendations/index.html` in your browser.
+- All static assets and absolute paths will work from the project root.
 
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
+---
 
-## Customization
+## 📝 Usage Notes
+- **Admin/Instructor:** Can add/delete modules, upload files, manage users/courses.
+- **Students:** Can view courses, download resources, track progress.
+- **Profile:** Edit your username, email, and password from the profile page.
+- **Navigation:** Use the top nav bar for Courses, About, Profile, and Back to Courses.
+- **File Uploads:** Max file size 50MB. Only allowed file types are accepted.
+- **YouTube Video:** Admins/instructors can add a YouTube link for each course.
 
-You can customize the following in `styles.css`:
-- Colors
-- Spacing
-- Font sizes
-- Card dimensions
-- Grid layout
-- Animation effects # courses_lms
-# courses_lms
->>>>>>> f275383 (Initial commit: LMS frontend and backend)
+---
+
+## 🤝 Contributing
+Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
+
+---
+
+## 📄 License
+This project is licensed under the MIT License.
