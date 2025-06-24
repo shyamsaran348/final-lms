@@ -61,40 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const role = localStorage.getItem('role');
         if (role === 'admin' || role === 'instructor') {
             addModuleBtn.style.display = 'block';
-            addModuleBtn.onclick = async () => {
-                // Prompt for module name and description
-                const title = prompt('Enter module name:');
-                if (!title) return;
-                const description = prompt('Enter module description (optional):') || '';
-                // Create module via backend
-                fetch(`${API_URL}/courses/${courseId}/modules`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-User-Role': role || '',
-                        'X-User-Email': localStorage.getItem('email') || ''
-                    },
-                    body: JSON.stringify({ title, description })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.module) {
-                        // Reload modules and auto-select the new one
-                        fetch(`${API_URL}/courses/${courseId}`, {
-                            headers: { 'X-User-Email': localStorage.getItem('email') || '' }
-                        })
-                        .then(res => res.json())
-                        .then(course => {
-                            const newModuleId = data.module.id;
-                            window._modules = course.modules;
-                            renderSidebar(course.modules, null, null);
-                            renderMainContent(course.modules, null, null);
-                            setupModuleManagement(course.modules);
-                        });
-                    } else {
-                        alert(data.message || 'Failed to add module');
-                    }
-                });
+            addModuleBtn.onclick = () => {
+                // Open the modal in add mode
+                showModuleModal();
             };
         } else {
             addModuleBtn.style.display = 'none';
