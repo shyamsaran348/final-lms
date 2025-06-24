@@ -387,6 +387,19 @@ function renderMainContent(modules, selectedModuleId, selectedLessonId) {
     ${addModuleBtnHtml}
     ${modulesHtml}
   `;
+  // Re-attach Add New Module button event listener after render
+  const addModuleBtn = document.getElementById('add-module-btn');
+  if (addModuleBtn) {
+    const role = localStorage.getItem('role');
+    if (role === 'admin' || role === 'instructor') {
+      addModuleBtn.style.display = 'block';
+      addModuleBtn.onclick = () => {
+        showModuleModal();
+      };
+    } else {
+      addModuleBtn.style.display = 'none';
+    }
+  }
   // Add expand/collapse logic for video section
   const videoToggle = document.getElementById('course-intro-video-toggle');
   if (videoToggle) {
