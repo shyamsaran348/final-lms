@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artificial Intelligence Foundations | A2000 Solutions</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .course-detail-container {
+            max-width: 900px; /* Adjust as needed for desired content width */
+            margin: 0 auto; /* Center the content */
+            padding: 2rem 1rem; /* Add some padding */
+        }
+        .hero-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2.5rem;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-top: 2rem;
+            padding: 2.5rem 2rem 2rem 2rem;
+            align-items: flex-start;
+        }
+        .hero-meta {
+            flex: 2 1 400px;
+            min-width: 300px;
+        }
+        .hero-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .hero-subtitle {
+            font-size: 1.15rem;
+            color: #444;
+            margin-bottom: 1.2rem;
+        }
+        .hero-author {
+            color: #6a6f73;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .hero-meta-list {
+            font-size: 0.95rem;
+            color: #6a6f73;
+            margin-bottom: 1.5rem;
+        }
+        .hero-actions {
+            margin-bottom: 1.5rem;
+        }
+        .hero-actions .tag.learn {
+            font-size: 1.1rem;
+            padding: 0.75rem 2rem;
+            background: #2d64bc;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .hero-actions .tag.learn:hover {
+            background: #17408b;
+        }
+        .hero-image {
+            flex: 1 1 340px;
+            min-width: 320px;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .hero-image img {
+            width: 100%;
+            border-radius: 8px;
+            object-fit: cover;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+        }
+        .back-link {
+            display: inline-block;
+            margin: 2rem 0 0 0;
+            color: #2d64bc;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+        .back-link i {
+            margin-right: 0.5rem;
+        }
+        .what-you-learn {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 1.5rem;
+            margin-top: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        .what-you-learn h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .what-you-learn ul {
+            list-style: none;
+            padding: 0;
+        }
+        .what-you-learn li {
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        .what-you-learn li i {
+            color: #2d64bc;
+            margin-right: 0.75rem;
+        }
+        .course-content-outline {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .course-content-outline h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .course-content-outline ul {
+            list-style: disc inside;
+            color: #1c1d1f;
+            padding-left: 1.5rem;
+        }
+        .instructor-section {
+            display: flex;
+            align-items: center;
+            background: #f7f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .instructor-photo {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1.5rem;
+            border: 2px solid #2d64bc;
+        }
+        .instructor-info {
+            flex: 1;
+        }
+        .instructor-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+        .instructor-bio {
+            color: #444;
+            font-size: 0.98rem;
+        }
+        @media (max-width: 900px) {
+            .hero-section {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .hero-image, .hero-meta {
+                min-width: 0;
+                max-width: 100%;
+            }
+        }
+        .floating-back-link {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.75rem 1rem;
+            background: #2d64bc;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+        }
+        .floating-back-link:hover {
+            background: #17408b;
+        }
+        .floating-back-link i {
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <a href="/" aria-label="A2000 Solutions Home">
+                    <img src="images/a2000-logo.jpeg" alt="A2000 Solutions Logo" class="company-logo">
+                </a>
+            </div>
+            <nav class="main-nav" aria-label="Main navigation">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="#">Categories</a></li>
+                    <li><a href="#">My Learning</a></li>
+                    <li><a href="profile.html">Profile</a></li>
+                    <li><a href="#">About</a></li>
+                </ul>
+            </nav>
+            <div class="search-container">
+                <form role="search" aria-label="Search courses">
+                    <input type="search" placeholder="Search courses..." aria-label="Search courses">
+                    <button type="submit" aria-label="Submit search">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <a href="index.html" class="back-link floating-back-link" aria-label="Back to courses"><i class="fas fa-arrow-left"></i>Back to courses</a>
+    </header>
+    <main class="course-detail-container">
+        <section class="hero-section">
+            <div class="hero-meta">
+                <div class="hero-title">Artificial Intelligence Foundations</div>
+                <div class="hero-subtitle">Dive into the world of Artificial Intelligence! Learn the foundations of AI, neural networks, and machine learning. This course is designed for beginners and professionals alike, providing hands-on projects and real-world applications.</div>
+                <div class="hero-author">By A2000 Solutions</div>
+                <div class="hero-meta-list">
+                    <span><i class="fas fa-globe"></i> English</span> &nbsp;|&nbsp;
+                    <span><i class="fas fa-clock"></i> 12 hours on-demand</span> &nbsp;|&nbsp;
+                    <span><i class="fas fa-signal"></i> Beginner to Advanced</span>
+                </div>
+                <div class="hero-actions">
+                    <button class="btn btn-learn">Start Learning</button>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="images/ai-foundations.jpg" alt="Artificial Intelligence Foundations">
+            </div>
+        </section>
+        <section class="what-you-learn">
+            <h3>What you'll learn</h3>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> Understand the basics of Artificial Intelligence and Machine Learning</li>
+                <li><i class="fas fa-check-circle"></i> Build and train simple neural networks</li>
+                <li><i class="fas fa-check-circle"></i> Apply AI concepts to real-world problems</li>
+                <li><i class="fas fa-check-circle"></i> Work with AI tools and libraries</li>
+                <li><i class="fas fa-check-circle"></i> Explore ethical considerations in AI</li>
+            </ul>
+        </section>
+        <section class="course-content-outline">
+            <h3>Course Content</h3>
+            <ul>
+                <li>Introduction to AI and its applications</li>
+                <li>Machine Learning basics</li>
+                <li>Neural Networks and Deep Learning</li>
+                <li>Hands-on AI projects</li>
+                <li>Ethics and Future of AI</li>
+            </ul>
+        </section>
+    </main>
+</body>
+</html> 

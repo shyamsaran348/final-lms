@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Course Modules</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style type="text/tailwindcss">
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        :root {
+            --brand-primary: #4f46e5;
+            --brand-secondary: #1e293b;
+            --text-primary: #111827;
+            --text-secondary: #4b5563;
+            --border-color: #e5e7eb;
+            --background-light: #f9fafb;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+<header class="bg-white shadow-sm sticky top-0 z-50 border-b border-[var(--border-color)]">
+    <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center">
+            <img alt="A2000 Solutions Logo" class="h-9 mr-4" src="/static/images/a2000-logo.jpeg"/>
+            <nav class="hidden md:flex space-x-2">
+                <a href="/course-recommendations/index.html" class="text-[var(--brand-primary)] font-medium px-4 py-2 rounded-md hover:bg-indigo-50 transition-colors">Courses</a>
+                <a href="/about.html" class="text-[var(--text-secondary)] hover:text-[var(--brand-primary)] px-4 py-2 rounded-md hover:bg-indigo-50 transition-colors">About</a>
+                <a href="/profile.html" class="text-[var(--text-secondary)] hover:text-[var(--brand-primary)] px-4 py-2 rounded-md hover:bg-indigo-50 transition-colors">Profile</a>
+            </nav>
+        </div>
+        <button onclick="window.location.href='/course-recommendations/index.html'" class="bg-[var(--brand-primary)] text-white px-5 py-2.5 rounded-md flex items-center hover:bg-indigo-700 transition-colors text-sm font-medium">
+            <span class="material-icons mr-2 text-base">arrow_back_ios</span>
+            Back To Courses
+        </button>
+    </div>
+</header>
+<main class="flex-grow container mx-auto px-6 py-10">
+    <div class="flex flex-col lg:flex-row gap-8">
+        <aside class="w-full lg:w-1/4 bg-white p-6 rounded-2xl shadow-md h-fit border border-[var(--border-color)]">
+            <h2 class="text-xl font-semibold text-[var(--text-primary)] mb-6">Modules</h2>
+            <nav class="flex flex-col gap-3" id="sidebar-modules-list">
+                <!-- JS will render modules here, each as a flex row: icon, title, trash icon -->
+                <!-- Example static structure for one module: -->
+                <!--
+                <div class="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2 group">
+                  <div class="flex items-center gap-2">
+                    <span class="material-icons text-gray-400 group-hover:text-indigo-500">folder_open</span>
+                    <span class="font-medium text-gray-700">Module 1</span>
+                  </div>
+                  <button class="ml-2 text-red-500 hover:text-red-700 transition-colors" title="Delete Module">
+                    <span class="material-icons">delete</span>
+                  </button>
+                </div>
+                -->
+            </nav>
+        </aside>
+        <section class="flex-1">
+            <div id="lms-content" class="bg-white rounded-2xl shadow-md border border-[var(--border-color)] p-8 mb-8">
+                <!-- Dynamic content will be rendered here by JS -->
+            </div>
+        </section>
+    </div>
+</main>
+<footer class="text-center text-gray-400 text-sm py-6 mt-8">© 2024 A2000 Solutions. All rights reserved.</footer>
+<!-- Modals and dynamic elements required by JS -->
+<div id="lesson-content-modal" class="lesson-content-modal" style="display:none;">
+    <div class="lesson-content-modal-inner">
+        <button id="close-lesson-modal" class="btn btn-secondary" style="float:right;">Close</button>
+        <div id="lesson-content-display"></div>
+    </div>
+</div>
+<div id="module-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span id="close-module-modal" class="close">&times;</span>
+        <h3 id="module-modal-title">Add/Edit Module</h3>
+        <form id="module-form">
+            <input type="hidden" id="module-id">
+            <label>Title: <input type="text" id="module-title" required></label><br>
+            <label>Description:<br>
+                <textarea id="module-description" rows="3" style="width:100%;"></textarea>
+            </label><br>
+            <label>Order: <input type="number" id="module-order" value="0" required></label><br>
+            <label>Release Date (YYYY-MM-DD HH:MM): <input type="text" id="module-release-date" placeholder="2025-06-19 12:00"></label><br>
+            <button type="submit" class="btn btn-primary">Save Module</button>
+        </form>
+    </div>
+</div>
+<div id="lesson-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span id="close-lesson-edit-modal" class="close">&times;</span>
+        <h3 id="lesson-modal-title">Add Lesson</h3>
+        <form id="lesson-form">
+            <input type="hidden" id="lesson-id">
+            <input type="hidden" id="lesson-module-id">
+            <label>Title: <input type="text" id="lesson-title" required></label><br>
+            <label>Order: <input type="number" id="lesson-order" value="0"></label><br>
+            <label>Content Type:
+                <select id="lesson-content-type" required>
+                    <option value="text">Text</option>
+                    <option value="video">Video (YouTube/Vimeo URL)</option>
+                    <option value="pdf">PDF (URL)</option>
+                </select>
+            </label><br>
+            <label>Content:<br>
+                <textarea id="lesson-content" rows="4" cols="40" required></textarea>
+            </label><br>
+            <label>Release Date (YYYY-MM-DD HH:MM): <input type="text" id="lesson-release-date" placeholder="2025-06-19 12:00"></label><br>
+            <button type="submit" class="btn btn-primary">Save Lesson</button>
+        </form>
+    </div>
+</div>
+<div id="my-debug-modal" class="custom-modal" style="display:none;">
+    <div class="custom-modal-content" tabindex="-1">
+        <span id="close-my-debug-modal" class="close">&times;</span>
+        <h3>Add Module</h3>
+        <form id="add-module-form">
+            <label for="module-title-input">Module Title</label>
+            <input type="text" id="module-title-input" required style="width:100%;margin-bottom:1em;">
+            <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+    </div>
+</div>
+<script src="/static/js/course-detail.js"></script>
+</body>
+</html> 

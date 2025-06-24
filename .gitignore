@@ -1,0 +1,62 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+lms-backend/venv/
+lms-backend/.venv/
+
+# VS Code
+.vscode/
+
+# Mac system files
+.DS_Store
+
+# PyCharm
+.idea/
+
+# SQLite database
+*.db
+
+# Node modules
+node_modules/
+
+# Log files
+*.log
+
+# Test coverage
+.coverage
+htmlcov/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Ignore course_files output
+lms-backend/course_files/*.png
+lms-backend/course_files/*.jpg
+lms-backend/course_files/*.jpeg
+lms-backend/course_files/*.pdf 
