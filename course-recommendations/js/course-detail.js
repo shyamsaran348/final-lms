@@ -98,7 +98,8 @@ function setupModuleManagement(modules) {
 }
 
 function showModuleModal(module = null) {
-    document.getElementById('module-modal').style.display = 'block';
+    const modal = document.getElementById('module-modal');
+    modal.style.display = 'flex';
     document.getElementById('module-modal-title').textContent = module ? 'Edit Module' : 'Add Module';
     document.getElementById('module-id').value = module ? module.id : '';
     document.getElementById('module-title').value = module ? module.title : '';
