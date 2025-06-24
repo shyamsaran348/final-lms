@@ -1,3 +1,5 @@
+const API_URL = 'http://localhost:5001/api';
+
 document.addEventListener('DOMContentLoaded', function() {
     // Restrict access to admins only
     if (localStorage.getItem('role') !== 'admin') {
@@ -42,7 +44,7 @@ function loadDashboardStats() {
 
 // Load users
 function loadUsers() {
-    fetch('http://localhost:5001/api/users', {
+    fetch(`${API_URL}/users`, {
         headers: {
             'X-User-Role': 'admin'
         }
@@ -86,7 +88,7 @@ function loadUsers() {
 
 // Load courses
 function loadCourses() {
-    fetch('http://localhost:5001/api/courses')
+    fetch(`${API_URL}/courses`)
     .then(res => res.json())
     .then(courses => {
         const tbody = document.querySelector('#coursesTable tbody');
@@ -117,7 +119,7 @@ function loadCourses() {
 
 // Load announcements
 function loadAnnouncements() {
-    fetch('http://localhost:5001/api/announcements')
+    fetch(`${API_URL}/announcements`)
         .then(res => res.json())
         .then(announcements => {
             const list = document.getElementById('announcementsList');
@@ -153,7 +155,7 @@ function updateUserRole(userId) {
     const select = document.querySelector(`select[data-user-id="${userId}"]`);
     const newRole = select.value;
     
-    fetch(`http://localhost:5001/api/users/${userId}/role`, {
+    fetch(`${API_URL}/users/${userId}/role`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -182,7 +184,7 @@ function deleteUser(userId, username) {
         return;
     }
     
-    fetch(`http://localhost:5001/api/users/${userId}`, {
+    fetch(`${API_URL}/users/${userId}`, {
         method: 'DELETE',
         headers: {
             'X-User-Role': 'admin'
@@ -209,7 +211,7 @@ function deleteCourse(courseId, title) {
         return;
     }
     
-    fetch(`http://localhost:5001/api/courses/${courseId}`, {
+    fetch(`${API_URL}/courses/${courseId}`, {
         method: 'DELETE',
         headers: {
             'X-User-Role': 'admin'
@@ -241,7 +243,7 @@ function handleAddCourse(event) {
     formData.append('rating', document.getElementById('courseRating').value);
     formData.append('detail_page', document.getElementById('detailPage').value || null);
     
-    fetch('http://localhost:5001/api/courses', {
+    fetch(`${API_URL}/courses`, {
         method: 'POST',
         headers: {
             'X-User-Role': 'admin'
@@ -299,13 +301,13 @@ function openCourseModal(userId, username, role) {
     modalTitle.textContent = `Manage Courses for ${role.charAt(0).toUpperCase() + role.slice(1)}: ${username}`;
     courseCheckboxes.innerHTML = '<div class="loading">Loading courses...</div>';
     // Fetch all courses
-    fetch('http://localhost:5001/api/courses', { headers: { 'X-User-Role': 'admin' } })
+    fetch(`${API_URL}/courses`, { headers: { 'X-User-Role': 'admin' } })
         .then(res => res.json())
         .then(courses => {
             // Fetch assigned courses for this user
             let url = role === 'student'
-                ? `http://localhost:5001/api/users/${userId}/courses`
-                : `http://localhost:5001/api/instructors/${userId}/courses`;
+                ? `${API_URL}/users/${userId}/courses`
+                : `${API_URL}/instructors/${userId}/courses`;
             fetch(url, { headers: { 'X-User-Role': 'admin' } })
                 .then(res => res.json())
                 .then(data => {
@@ -326,8 +328,8 @@ function openCourseModal(userId, username, role) {
             .map(cb => parseInt(cb.value));
         // Fetch current assignments
         let url = role === 'student'
-            ? `http://localhost:5001/api/users/${userId}/courses`
-            : `http://localhost:5001/api/instructors/${userId}/courses`;
+            ? `${API_URL}/users/${userId}/courses`
+            : `${API_URL}/instructors/${userId}/courses`;
         fetch(url, { headers: { 'X-User-Role': 'admin' } })
             .then(res => res.json())
             .then(data => {
@@ -369,7 +371,7 @@ window.editCourse = function(courseId) {
     document.getElementById('editCourseImage').value = '';
     document.getElementById('editCourseRating').value = parseFloat(row.children[3].textContent);
     // Optionally fetch full course data from backend for image path
-    fetch(`http://localhost:5001/api/courses/${courseId}`)
+    fetch(`${API_URL}/courses/${courseId}`)
       .then(res => res.json())
       .then(course => {
         document.getElementById('editCourseImage').value = course.image || '';
@@ -391,7 +393,7 @@ document.getElementById('editCourseForm').onsubmit = function(e) {
         image: document.getElementById('editCourseImage').value,
         rating: parseFloat(document.getElementById('editCourseRating').value)
     };
-    fetch(`http://localhost:5001/api/courses/${id}`, {
+    fetch(`${API_URL}/courses/${id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -438,7 +440,7 @@ function handleAddAnnouncement(event) {
         content: document.getElementById('announcementContent').value,
     };
     
-    fetch('http://localhost:5001/api/announcements', {
+    fetch(`${API_URL}/announcements`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -468,7 +470,7 @@ function deleteAnnouncement(announcementId) {
         return;
     }
 
-    fetch(`http://localhost:5001/api/announcements/${announcementId}`, {
+    fetch(`${API_URL}/announcements/${announcementId}`, {
         method: 'DELETE',
         headers: {
             'X-User-Role': 'admin'

@@ -1,3 +1,5 @@
+const API_URL = 'http://localhost:5001/api';
+
 document.addEventListener('DOMContentLoaded', function() {
     const registerForm = document.getElementById('registerForm');
     const registerMessage = document.getElementById('registerMessage');
@@ -13,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
             registerMessage.textContent = ''; // Clear previous messages
 
             try {
-                const response = await fetch('http://localhost:5001/api/register', {
+                const response = await fetch(`${API_URL}/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -1,3 +1,5 @@
+const API_URL = 'http://localhost:5001/api';
+
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
     const loginMessage = document.getElementById('loginMessage');
@@ -12,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loginMessage.textContent = ''; // Clear previous messages
 
             try {
-                const response = await fetch('http://localhost:5001/api/login', {
+                const response = await fetch(`${API_URL}/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

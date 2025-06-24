@@ -1,6 +1,6 @@
 // course-detail.js
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_URL = 'http://localhost:5001/api';
 
 // Get course_id from URL and make it global
 const params = new URLSearchParams(window.location.search);
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     // Fetch course info
-    fetch(`http://localhost:5001/api/courses/${courseId}`, {
+    fetch(`${API_URL}/courses/${courseId}`, {
         headers: {
             'X-User-Email': localStorage.getItem('email') || ''
         }
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!title) return;
                 const description = prompt('Enter module description (optional):') || '';
                 // Create module via backend
-                fetch(`http://localhost:5001/api/courses/${courseId}/modules`, {
+                fetch(`${API_URL}/courses/${courseId}/modules`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(data => {
                     if (data.module) {
                         // Reload modules and auto-select the new one
-                        fetch(`http://localhost:5001/api/courses/${courseId}`, {
+                        fetch(`${API_URL}/courses/${courseId}`, {
                             headers: { 'X-User-Email': localStorage.getItem('email') || '' }
                         })
                         .then(res => res.json())
@@ -148,7 +148,7 @@ document.getElementById('module-form').onsubmit = function(e) {
     const order = document.getElementById('module-order').value;
     const release_date = document.getElementById('module-release-date').value;
     const method = id ? 'PUT' : 'POST';
-    const url = id ? `http://localhost:5001/api/modules/${id}` : `http://localhost:5001/api/courses/${courseId}/modules`;
+    const url = id ? `${API_URL}/modules/${id}` : `${API_URL}/courses/${courseId}/modules`;
     fetch(url, {
         method,
         headers: {
@@ -163,7 +163,7 @@ document.getElementById('module-form').onsubmit = function(e) {
         if (data.module || data.message === 'Module updated') {
             document.getElementById('module-modal').style.display = 'none';
             // Reload modules
-            fetch(`http://localhost:5001/api/courses/${courseId}`, {
+            fetch(`${API_URL}/courses/${courseId}`, {
                 headers: { 'X-User-Email': localStorage.getItem('email') || '' }
             })
             .then(res => res.json())
@@ -177,7 +177,7 @@ document.getElementById('module-form').onsubmit = function(e) {
     });
 };
 function deleteModule(id) {
-    fetch(`http://localhost:5001/api/modules/${id}`, {
+    fetch(`${API_URL}/modules/${id}`, {
         method: 'DELETE',
         headers: {
             'X-User-Role': localStorage.getItem('role') || '',
@@ -188,7 +188,7 @@ function deleteModule(id) {
     .then(data => {
         if (data.message === 'Module deleted') {
             // Reload modules
-            fetch(`http://localhost:5001/api/courses/${courseId}`, {
+            fetch(`${API_URL}/courses/${courseId}`, {
                 headers: { 'X-User-Email': localStorage.getItem('email') || '' }
             })
             .then(res => res.json())
@@ -276,7 +276,7 @@ let expandedModules = new Set();
 async function fetchAllModuleFiles(modules, callback, selectedModuleId, selectedLessonId) {
   window._moduleFiles = {};
   const fetches = modules.map(module =>
-    fetch(`http://localhost:5001/api/modules/${module.id}/files`, {
+    fetch(`${API_URL}/modules/${module.id}/files`, {
       headers: {
         'X-User-Email': localStorage.getItem('email') || '',
         'X-User-Role': localStorage.getItem('role') || ''
@@ -436,7 +436,7 @@ function renderMainContent(modules, selectedModuleId, selectedLessonId) {
       const email = localStorage.getItem('email');
       const role = localStorage.getItem('role');
       try {
-        const res = await fetch(`http://localhost:5001/api/files/${fileId}`, {
+        const res = await fetch(`${API_URL}/files/${fileId}`, {
           headers: {
             'X-User-Email': email || '',
             'X-User-Role': role || ''
@@ -470,7 +470,7 @@ function renderMainContent(modules, selectedModuleId, selectedLessonId) {
       const fileId = btn.getAttribute('data-file-id');
       if (confirm('Delete this file?')) {
         const userRole = localStorage.getItem('role');
-        fetch(`http://localhost:5001/api/files/${fileId}`, {
+        fetch(`${API_URL}/files/${fileId}`, {
           method: 'DELETE',
           headers: {
             'X-User-Role': userRole || '',
@@ -506,7 +506,7 @@ function renderMainContent(modules, selectedModuleId, selectedLessonId) {
       const formData = new FormData();
       formData.append('file', file);
       statusSpan.textContent = 'Uploading...';
-      fetch(`http://localhost:5001/api/modules/${moduleId}/files`, {
+      fetch(`${API_URL}/modules/${moduleId}/files`, {
         method: 'POST',
         headers: {
           'X-User-Role': userRole || '',
@@ -604,7 +604,7 @@ function attachDownloadHandlers() {
       const role = localStorage.getItem('role');
       console.log('[Download] Button clicked for file:', fileId, filename);
       try {
-        const res = await fetch(`http://localhost:5001/api/files/${fileId}`, {
+        const res = await fetch(`${API_URL}/files/${fileId}`, {
           headers: {
             'X-User-Email': email || '',
             'X-User-Role': role || ''
@@ -700,7 +700,7 @@ function setupYouTubeFormHandler(course) {
       e.preventDefault();
       const link = document.getElementById('yt-link-input').value.trim();
       if (!link) return;
-      fetch(`http://localhost:5001/api/courses/${course.id}/youtube`, {
+      fetch(`${API_URL}/courses/${course.id}/youtube`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

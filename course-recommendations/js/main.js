@@ -1,3 +1,5 @@
+const API_URL = 'http://localhost:5001/api';
+
 document.addEventListener('DOMContentLoaded', function() {
     // Check user role and show admin link if admin
     const userRole = localStorage.getItem('role');
@@ -251,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DEBUG userRole:', userRole);
 
     // Fetch courses with the email header
-    fetch('http://localhost:5001/api/courses', {
+    fetch(`${API_URL}/courses`, {
         headers: {
             'X-User-Email': userEmail
         }
@@ -377,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!announcementsList) return;
 
         // Fetch announcements from the API
-        fetch('http://localhost:5001/api/announcements')
+        fetch(`${API_URL}/announcements`)
             .then(response => response.json())
             .then(announcements => {
                 announcementsList.innerHTML = ''; // Clear existing content
