@@ -37,6 +37,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (content) content.innerHTML = '<div style="text-align:center;color:#e53e3e;font-size:1.2em;margin-top:3em;">No course_id found in URL. Please access this page from the course list.</div>';
         return;
     }
+    // Show Add Module button for admin/instructor only
+    const role = localStorage.getItem('role');
+    const addModuleBtn = document.getElementById('add-module-btn');
+    if (addModuleBtn) {
+      if (role === 'admin' || role === 'instructor') {
+        addModuleBtn.style.display = 'block';
+        addModuleBtn.onclick = () => showModuleModal();
+      } else {
+        addModuleBtn.style.display = 'none';
+      }
+    }
     // Fetch course info
     fetch(`${API_URL}/courses/${courseId}`, {
         headers: {
@@ -55,20 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (content) content.innerHTML = '<div style="text-align:center;color:#e53e3e;font-size:1.2em;margin-top:3em;">Failed to load course. Please try again later.</div>';
         console.error('Error fetching course:', err);
     });
-    // Add module button logic
-    const addModuleBtn = document.getElementById('add-module-btn');
-    if (addModuleBtn) {
-        const role = localStorage.getItem('role');
-        if (role === 'admin' || role === 'instructor') {
-            addModuleBtn.style.display = 'block';
-            addModuleBtn.onclick = () => {
-                // Open the modal in add mode
-                showModuleModal();
-            };
-        } else {
-            addModuleBtn.style.display = 'none';
-        }
-    }
 });
 
 function setupModuleManagement(modules) {
@@ -99,7 +96,7 @@ function setupModuleManagement(modules) {
 
 function showModuleModal(module = null) {
     const modal = document.getElementById('module-modal');
-    modal.style.display = 'flex';
+    modal.classList.add('active');
     document.getElementById('module-modal-title').textContent = module ? 'Edit Module' : 'Add Module';
     document.getElementById('module-id').value = module ? module.id : '';
     document.getElementById('module-title').value = module ? module.title : '';
@@ -108,44 +105,69 @@ function showModuleModal(module = null) {
     document.getElementById('module-release-date').value = module && module.release_date ? module.release_date : '';
 }
 document.getElementById('close-module-modal').onclick = () => {
-    document.getElementById('module-modal').style.display = 'none';
+    const modal = document.getElementById('module-modal');
+    modal.classList.remove('active');
 };
-document.getElementById('module-form').onsubmit = function(e) {
+
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('module-modal');
+  // Bulletproof: forcibly reset modal to hidden state on load
+  modal.className = 'modal-overlay';
+  // Modal logic only (no addModuleBtn logic)
+  const closeModal = document.getElementById('close-module-modal');
+  const moduleForm = document.getElementById('module-form');
+
+  closeModal.onclick = function() {
+    modal.classList.remove('active');
+  };
+
+  // Optional: close modal when clicking outside content
+  modal.onclick = function(e) {
+    if (e.target === modal) {
+      modal.classList.remove('active');
+    }
+  };
+
+  moduleForm.onsubmit = function(e) {
     e.preventDefault();
-    const id = document.getElementById('module-id').value;
+    // Gather form data
     const title = document.getElementById('module-title').value;
     const description = document.getElementById('module-description').value;
     const order = document.getElementById('module-order').value;
     const release_date = document.getElementById('module-release-date').value;
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `${API_URL}/modules/${id}` : `${API_URL}/courses/${courseId}/modules`;
-    fetch(url, {
-        method,
-        headers: {
-            'Content-Type': 'application/json',
-            'X-User-Role': localStorage.getItem('role') || '',
-            'X-User-Email': localStorage.getItem('email') || ''
-        },
-        body: JSON.stringify({ title, description, order, release_date })
+    // Call backend API to add module
+    fetch(`${API_URL}/courses/${courseId}/modules`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Role': localStorage.getItem('role') || '',
+        'X-User-Email': localStorage.getItem('email') || ''
+      },
+      body: JSON.stringify({ title, description, order, release_date })
     })
     .then(res => res.json())
     .then(data => {
-        if (data.module || data.message === 'Module updated') {
-            document.getElementById('module-modal').style.display = 'none';
-            // Reload modules
-            fetch(`${API_URL}/courses/${courseId}`, {
-                headers: { 'X-User-Email': localStorage.getItem('email') || '' }
-            })
-            .then(res => res.json())
-            .then(course => {
-                loadModules(course.modules);
-                setupModuleManagement(course.modules);
-            });
-        } else {
-            alert(data.message || 'Failed to save module');
-        }
+      if (data.module) {
+        modal.classList.remove('active');
+        // Reload modules
+        fetch(`${API_URL}/courses/${courseId}`, {
+          headers: { 'X-User-Email': localStorage.getItem('email') || '' }
+        })
+        .then(res => res.json())
+        .then(course => {
+          loadModules(course.modules);
+          setupModuleManagement(course.modules);
+        });
+      } else {
+        alert(data.message || 'Failed to add module');
+      }
+    })
+    .catch(() => {
+      alert('Failed to add module');
     });
-};
+  };
+});
+
 function deleteModule(id) {
     fetch(`${API_URL}/modules/${id}`, {
         method: 'DELETE',
@@ -297,16 +319,6 @@ function renderMainContent(modules, selectedModuleId, selectedLessonId) {
       </div>
     </div>
   `;
-  // Add New Module button (reference structure)
-  let addModuleBtnHtml = '';
-  if (userRole === 'admin' || userRole === 'instructor') {
-    addModuleBtnHtml = `
-      <button class="w-full bg-[var(--brand-primary)] text-white py-3 px-6 rounded-md flex items-center justify-center hover:bg-indigo-700 transition-colors mb-8 font-medium" id="add-module-btn">
-        <span class="material-icons mr-2">add_circle_outline</span>
-        Add New Module
-      </button>
-    `;
-  }
   // Modules section (reference structure)
   let modulesHtml = '<div class="space-y-5">';
   sortedModules.forEach(m => {
@@ -385,22 +397,8 @@ function renderMainContent(modules, selectedModuleId, selectedLessonId) {
   content.innerHTML = `
     ${courseInfoHtml}
     ${courseVideoHtml}
-    ${addModuleBtnHtml}
     ${modulesHtml}
   `;
-  // Re-attach Add New Module button event listener after render
-  const addModuleBtn = document.getElementById('add-module-btn');
-  if (addModuleBtn) {
-    const role = localStorage.getItem('role');
-    if (role === 'admin' || role === 'instructor') {
-      addModuleBtn.style.display = 'block';
-      addModuleBtn.onclick = () => {
-        showModuleModal();
-      };
-    } else {
-      addModuleBtn.style.display = 'none';
-    }
-  }
   // Add expand/collapse logic for video section
   const videoToggle = document.getElementById('course-intro-video-toggle');
   if (videoToggle) {
@@ -706,4 +704,6 @@ function setupYouTubeFormHandler(course) {
       .catch(() => alert('Failed to update YouTube link'));
     };
   }
-} 
+}
+
+window.showModuleModal = showModuleModal; 

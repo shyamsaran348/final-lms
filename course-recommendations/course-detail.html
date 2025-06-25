@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <style type="text/tailwindcss">
         body {
             font-family: 'Inter', sans-serif;
@@ -43,6 +43,7 @@
 <main class="course-detail-layout">
     <aside class="course-detail-sidebar">
         <h2 class="text-xl font-semibold text-[var(--text-primary)] mb-6">Modules</h2>
+        <button id="add-module-btn" class="w-full bg-[var(--brand-primary)] text-white py-2 mb-4 rounded-md font-medium hover:bg-indigo-700 transition-colors" style="display:none;">Add New Module</button>
         <nav class="flex flex-col gap-3" id="sidebar-modules-list">
             <!-- JS will render modules here -->
         </nav>
@@ -61,21 +62,22 @@
         <div id="lesson-content-display"></div>
     </div>
 </div>
-<div id="module-modal" class="modal" style="display:none;">
-    <div class="modal-content">
-        <span id="close-module-modal" class="close">&times;</span>
-        <h3 id="module-modal-title">Add/Edit Module</h3>
-        <form id="module-form">
-            <input type="hidden" id="module-id">
-            <label>Title: <input type="text" id="module-title" required></label><br>
-            <label>Description:<br>
-                <textarea id="module-description" rows="3" style="width:100%;"></textarea>
-            </label><br>
-            <label>Order: <input type="number" id="module-order" value="0" required></label><br>
-            <label>Release Date (YYYY-MM-DD HH:MM): <input type="text" id="module-release-date" placeholder="2025-06-19 12:00"></label><br>
-            <button type="submit" class="btn btn-primary">Save Module</button>
-        </form>
-    </div>
+<!-- Modal (always present) -->
+<div id="module-modal" class="modal-overlay">
+  <div class="modal-content">
+    <span id="close-module-modal" class="close">&times;</span>
+    <h3 id="module-modal-title">Add Module</h3>
+    <form id="module-form">
+      <input type="hidden" id="module-id">
+      <label>Title: <input type="text" id="module-title" required></label><br>
+      <label>Description:<br>
+        <textarea id="module-description" rows="3" style="width:100%;"></textarea>
+      </label><br>
+      <label>Order: <input type="number" id="module-order" value="0" required></label><br>
+      <label>Release Date (YYYY-MM-DD HH:MM): <input type="text" id="module-release-date" placeholder="2025-06-19 12:00"></label><br>
+      <button type="submit" class="btn btn-primary">Save Module</button>
+    </form>
+  </div>
 </div>
 <div id="lesson-modal" class="modal" style="display:none;">
     <div class="modal-content">
@@ -98,17 +100,6 @@
             </label><br>
             <label>Release Date (YYYY-MM-DD HH:MM): <input type="text" id="lesson-release-date" placeholder="2025-06-19 12:00"></label><br>
             <button type="submit" class="btn btn-primary">Save Lesson</button>
-        </form>
-    </div>
-</div>
-<div id="my-debug-modal" class="custom-modal" style="display:none;">
-    <div class="custom-modal-content" tabindex="-1">
-        <span id="close-my-debug-modal" class="close">&times;</span>
-        <h3>Add Module</h3>
-        <form id="add-module-form">
-            <label for="module-title-input">Module Title</label>
-            <input type="text" id="module-title-input" required style="width:100%;margin-bottom:1em;">
-            <button type="submit" class="btn btn-primary">Add</button>
         </form>
     </div>
 </div>
