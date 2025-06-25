@@ -341,7 +341,10 @@ function openCourseModal(userId, username, role) {
                 Promise.all([
                     ...toAdd.map(courseId => fetch(url, {
                         method: 'POST',
-                        headers: { 'X-User-Role': 'admin' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-User-Role': 'admin'
+                        },
                         body: JSON.stringify({ course_id: courseId })
                     })),
                     ...toRemove.map(courseId => fetch(`${url}/${courseId}`, {

@@ -155,6 +155,7 @@ def get_courses():
                 course_dict = course.to_dict()
                 course_dict['locked'] = False
                 result.append(course_dict)
+        print(f"[DEBUG] Returning {len(result)} unlocked courses for instructor {user.email}")
         return jsonify(result if isinstance(result, list) else [result])
     # Student: only assigned courses unlocked
     assigned_ids = set(sc.course_id for sc in StudentCourse.query.filter_by(user_id=user.id).all())
@@ -164,6 +165,7 @@ def get_courses():
         course_dict = course.to_dict()
         course_dict['locked'] = course.id not in assigned_ids
         result.append(course_dict)
+    print(f"[DEBUG] Returning {len(result)} courses for student {user.email} (unlocked: {[c['id'] for c in result if not c['locked']]})")
     return jsonify(result if isinstance(result, list) else [result])
 
 @app.route('/api/register', methods=['POST'])

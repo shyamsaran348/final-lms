@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Redirect based on role (case-insensitive)
                     setTimeout(() => {
                         if (data.role && data.role.trim().toLowerCase() === 'admin') {
-                            window.location.href = 'admin.html';
+                            window.location.href = 'course-recommendations/admin.html';
                         } else {
                             window.location.href = 'index.html';
                         }

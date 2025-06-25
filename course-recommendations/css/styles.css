@@ -4012,3 +4012,46 @@ section.flex-1 {
   font-size: 1.5em;
   cursor: pointer;
 }
+
+/* Add New Module Button */
+.add-module-btn {
+  display: block;
+  margin: 2em auto;
+  padding: 1em 2em;
+  background: #4f46e5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1em;
+  cursor: pointer;
+}
+/* Modal Overlay */
+.modal-overlay {
+  display: none !important;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.25);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+.modal-overlay.active {
+  display: flex !important;
+}
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 2em 2.5em;
+  min-width: 340px;
+  max-width: 95vw;
+  margin: auto;
+  position: relative;
+}
+.close {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  font-size: 1.5em;
+  cursor: pointer;
+}
