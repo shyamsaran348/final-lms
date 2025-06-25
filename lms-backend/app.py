@@ -7,10 +7,20 @@ from functools import wraps
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+import re
 
 app = Flask(__name__)
 app.config.from_object(Config)
 CORS(app, supports_credentials=True, allow_headers=["Content-Type", "X-User-Email", "X-User-Role"])
+
+# --- Security: Rate Limiting ---
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"]
+)
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -169,12 +179,23 @@ def get_courses():
     return jsonify(result if isinstance(result, list) else [result])
 
 @app.route('/api/register', methods=['POST'])
+@limiter.limit("5 per minute")
 def register_user():
     data = request.get_json()
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
     role = data.get('role', 'student')  # Default to student if not provided
+
+    # --- Security: Strong password validation ---
+    if not password or len(password) < 8 or not re.search(r"[A-Z]", password) or not re.search(r"[a-z]", password) or not re.search(r"[0-9]", password):
+        return jsonify({'message': 'Password must be at least 8 characters and include uppercase, lowercase, and a number.'}), 400
+
+    # --- Security: Basic input sanitization ---
+    if username and not re.match(r'^[\w\- ]+$', username):
+        return jsonify({'message': 'Invalid characters in username.'}), 400
+    if email and not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email):
+        return jsonify({'message': 'Invalid email address.'}), 400
 
     if not username or not email or not password:
         return jsonify({'message': 'Missing username, email, or password'}), 400
@@ -193,6 +214,7 @@ def register_user():
     return jsonify({'message': 'User registered successfully'}), 201
 
 @app.route('/api/login', methods=['POST'])
+@limiter.limit("10 per minute")
 def login_user():
     data = request.get_json()
     email = data.get('email')
@@ -204,8 +226,7 @@ def login_user():
     user = User.query.filter_by(email=email).first()
 
     if user and user.check_password(password):
-        # In a real app, you would generate a JWT. For this demo, we'll return a dummy token.
-        # The frontend will then send this back in headers for authenticated requests.
+        # TODO: Implement real JWT/session authentication for production
         dummy_token = "fake-jwt-token" 
         return jsonify({
             'message': 'Login successful', 

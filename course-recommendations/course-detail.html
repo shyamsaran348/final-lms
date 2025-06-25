@@ -22,6 +22,45 @@
             --background-light: #f9fafb;
         }
     </style>
+    <style>
+        .course-detail-layout {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 2.5rem;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2.5rem 0 2.5rem 0;
+        }
+        .course-detail-sidebar {
+            width: 30%;
+            min-width: 220px;
+            max-width: 350px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.07), 0 1.5px 6px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+            padding: 2em 1.5em 2em 1.5em;
+            height: fit-content;
+        }
+        .course-detail-main {
+            width: 70%;
+            flex: 1;
+        }
+        @media (max-width: 900px) {
+            .course-detail-layout {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1.5rem;
+                padding: 1.2rem 0 1.2rem 0;
+            }
+            .course-detail-sidebar, .course-detail-main {
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 <header class="bg-white shadow-sm sticky top-0 z-50 border-b border-[var(--border-color)]">
@@ -48,7 +87,7 @@
             <!-- JS will render modules here -->
         </nav>
     </aside>
-    <section style="flex:1;">
+    <section class="course-detail-main">
         <div id="lms-content" class="bg-white rounded-2xl shadow-md border border-[var(--border-color)] p-8 mb-8">
             <!-- Dynamic content will be rendered here by JS -->
         </div>
