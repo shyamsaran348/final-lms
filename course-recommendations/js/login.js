@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:5001/api';
+if (typeof API_URL === 'undefined') {
+  var API_URL = 'http://localhost:5001/api';
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
@@ -8,8 +10,8 @@ document.addEventListener('DOMContentLoaded', function() {
         loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
 
             loginMessage.textContent = ''; // Clear previous messages
 
@@ -40,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Redirect based on role (case-insensitive)
                     setTimeout(() => {
                         if (data.role && data.role.trim().toLowerCase() === 'admin') {
-                            window.location.href = 'course-recommendations/admin.html';
+                            window.location.href = '/course-recommendations/admin.html';
                         } else {
                             window.location.href = 'index.html';
                         }

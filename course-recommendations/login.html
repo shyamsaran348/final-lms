@@ -1,54 +1,517 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Login - A2000</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,600' rel='stylesheet' type='text/css'>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.11.3/paper-full.min.js"></script>
+    <title>Login / Register - A2000</title>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+      @charset "UTF-8";
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        width: 100% !important;
+        box-sizing: border-box;
+        font-family: "Roboto", sans-serif;
+      }
+      .backRight {
+        position: absolute;
+        right: 0;
+        width: 50%;
+        height: 100%;
+        background: #673AB7;
+      }
+      .backLeft {
+        position: absolute;
+        left: 0;
+        width: 50%;
+        height: 100%;
+        background: #673AB7;
+      }
+      #back {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        z-index: -999;
+      }
+      .canvas-back {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+      }
+      #slideBox {
+        width: 50%;
+        max-height: 100%;
+        height: 100%;
+        overflow: hidden;
+        margin-left: 50%;
+        position: absolute;
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+      }
+      .topLayer {
+        width: 200%;
+        height: 100%;
+        position: relative;
+        left: 0;
+        left: -100%;
+      }
+      label {
+        font-size: 0.8em;
+        text-transform: uppercase;
+      }
+      input {
+        background-color: transparent;
+        border: 0;
+        outline: 0;
+        font-size: 1em;
+        padding: 8px 1px;
+        margin-top: 0.1em;
+      }
+      .left {
+        width: 50%;
+        height: 100%;
+        overflow: scroll;
+        background: #fff;
+        left: 0;
+        position: absolute;
+      }
+      .left label {
+        color: #673AB7;
+      }
+      .left input {
+        border-bottom: 1px solid #673AB7;
+        color: #222;
+        background: transparent;
+      }
+      .left input:focus, .left input:active {
+        border-color: #7C3AED;
+        color: #7C3AED;
+      }
+      .left input:-webkit-autofill {
+        -webkit-box-shadow: 0 0 0 30px #fff inset;
+        -webkit-text-fill-color: #222;
+      }
+      .left a {
+        color: #673AB7;
+      }
+      .left .content h2 {
+        color: #673AB7;
+      }
+      .right {
+        width: 50%;
+        height: 100%;
+        overflow: scroll;
+        background: #f9f9f9;
+        right: 0;
+        position: absolute;
+      }
+      .right label {
+        color: #212121;
+      }
+      .right input {
+        border-bottom: 1px solid #212121;
+      }
+      .right input:focus, .right input:active {
+        border-color: #673AB7;
+      }
+      .right input:-webkit-autofill {
+        -webkit-box-shadow: 0 0 0 30px #f9f9f9 inset;
+        -webkit-text-fill-color: #212121;
+      }
+      .content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 100%;
+        width: 80%;
+        margin: 0 auto;
+        position: relative;
+      }
+      .content h2 {
+        font-weight: 300;
+        font-size: 2.6em;
+        margin: 0.2em 0 0.1em;
+      }
+      .right .content h2 {
+        color: #673AB7;
+      }
+      .form-element {
+        margin: 1.6em 0;
+      }
+      .form-element.form-submit {
+        margin: 1.6em 0 0;
+      }
+      .form-stack {
+        display: flex;
+        flex-direction: column;
+      }
+      .checkbox {
+        -webkit-appearance: none;
+        outline: none;
+        background-color: #e3e3e3;
+        border: 1px solid #e3e3e3;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0px -15px 10px -12px rgba(0, 0, 0, 0.05);
+        padding: 12px;
+        border-radius: 4px;
+        display: inline-block;
+        position: relative;
+      }
+      .checkbox:focus, .checkbox:checked:focus,
+      .checkbox:active, .checkbox:checked:active {
+        border-color: #03A9F4;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0px 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .checkbox:checked {
+        outline: none;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0px -15px 10px -12px rgba(0, 0, 0, 0.05), inset 15px 10px -12px rgba(255, 255, 255, 0.1);
+      }
+      .checkbox:checked:after {
+        outline: none;
+        content: "✓";
+        color: #03A9F4;
+        font-size: 1.4em;
+        font-weight: 900;
+        position: absolute;
+        top: -4px;
+        left: 4px;
+      }
+      .form-checkbox {
+        display: flex;
+        align-items: center;
+      }
+      .form-checkbox label {
+        margin: 0 6px 0;
+        font-size: 0.72em;
+      }
+      button {
+        padding: 0.8em 1.2em;
+        margin: 0 10px 0 0;
+        width: auto;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 1em;
+        color: #fff;
+        line-height: 1em;
+        letter-spacing: 0.6px;
+        border-radius: 3px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.1);
+        border: 0;
+        outline: 0;
+        transition: all 0.25s;
+      }
+      button.signup, button.login {
+        background: #673AB7;
+        color: #fff;
+      }
+      button.signup:hover, button.signup:focus, button.signup:active,
+      button.login:hover, button.login:focus, button.login:active {
+        background: #7C3AED;
+      }
+      button.off.signup, button.off.login {
+        background: none;
+        color: #673AB7;
+        box-shadow: none;
+      }
+      button.off.signup:hover, button.off.signup:focus, button.off.signup:active,
+      button.off.login:hover, button.off.login:focus, button.off.login:active {
+        color: #7C3AED;
+        background: #f3f4f6;
+      }
+      button:focus, button:active, button:hover {
+        box-shadow: 0 4px 7px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.1);
+      }
+      button:focus.signup, button:active.signup, button:hover.signup {
+        background: #0288D1;
+      }
+      button:focus.login, button:active.login, button:hover.login {
+        background: #512DA8;
+      }
+      button:focus.off, button:active.off, button:hover.off {
+        box-shadow: none;
+      }
+      button:focus.off.signup, button:active.off.signup, button:hover.off.signup {
+        color: #03A9F4;
+        background: #212121;
+      }
+      button:focus.off.login, button:active.off.login, button:hover.off.login {
+        color: #512DA8;
+        background: #e3e3e3;
+      }
+      @media only screen and (max-width: 768px) {
+        #slideBox {
+          width: 80%;
+          margin-left: 20%;
+        }
+        .signup-info, .login-info {
+          display: none;
+        }
+      }
+      .background-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #fff;
+        font-size: 2.1em;
+        font-weight: 600;
+        text-align: center;
+        line-height: 1.2;
+        text-shadow: 0 2px 16px rgba(0,0,0,0.18), 0 1.5px 4px rgba(0,0,0,0.12);
+        width: 80%;
+        z-index: 1001;
+        pointer-events: none;
+      }
+      .backLeft .background-text {
+        color: #fff;
+      }
+      .backRight .background-text {
+        color: #fff;
+      }
+      @media only screen and (max-width: 768px) {
+        .background-text {
+          font-size: 1.2em;
+          width: 95%;
+        }
+      }
+      body.signup-active #signup-bg-text {
+        display: block !important;
+      }
+      body.signup-active #login-bg-text {
+        display: none !important;
+      }
+      body.login-active #login-bg-text {
+        display: block !important;
+      }
+      body.login-active #signup-bg-text {
+        display: none !important;
+      }
     </style>
 </head>
-<body class="bg-gray-100">
-<div class="min-h-screen flex">
-  <div class="w-full lg:w-1/2 bg-white flex flex-col justify-center items-center p-8 sm:p-12">
-    <div class="w-full max-w-md">
-      <div class="mb-10 text-center lg:text-left">
-        <img alt="A2000 Logo" class="h-10 mx-auto lg:mx-0 mb-8" src="images/a2000-logo.jpeg" />
-        <h1 class="text-4xl font-bold text-gray-800 mb-2">HELLO,</h1>
-        <h2 class="text-3xl font-semibold text-gray-700">WELCOME BACK.</h2>
+<body>
+    <div id="back">
+      <canvas id="canvas" class="canvas-back"></canvas>
+      <div class="backRight">
+        <div class="background-text" id="login-bg-text">Join A2000<br>and start your learning journey!</div>
       </div>
-      <form id="loginForm" class="space-y-6">
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1" for="email">E-Mail</label>
-          <div class="relative">
-            <input class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" id="email" name="email" placeholder="yourname@example.com" type="email" required />
-            <span class="material-icons absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">mail_outline</span>
+      <div class="backLeft">
+        <div class="background-text" id="signup-bg-text">Welcome back!<br>Log in to continue learning.</div>
+      </div>
+    </div>
+    <div id="slideBox">
+      <div class="topLayer">
+        <div style="scrollbar-width: none;" class="left">
+          <div class="content">
+            <img src="images/a2000-logo.jpeg" alt="A2000 Logo" style="display:block;margin:0 auto 1.5em auto;max-width:120px;width:60%;height:auto;">
+            <h2>Sign Up</h2>
+            <form id="registerForm" method="post" onsubmit="return false;">
+              <div class="form-element form-stack">
+                <label for="email" class="form-label">Email</label>
+                <input id="email" type="email" name="email" required>
+              </div>
+              <div class="form-element form-stack">
+                <label for="username" class="form-label">Username</label>
+                <input id="username" type="text" name="username" required>
+              </div>
+              <div class="form-element form-stack">
+                <label for="password" class="form-label">Password</label>
+                <div style="position:relative;display:flex;align-items:center;">
+                  <input id="password" type="password" name="password" required style="flex:1;">
+                  <button type="button" id="toggleRegisterPassword" aria-label="Show/Hide password" style="background:none;border:none;position:absolute;right:0;top:50%;transform:translateY(-50%);cursor:pointer;padding:0 8px;">
+                    <span id="registerEyeIcon">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#03A9F4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+              <div class="form-element form-submit">
+                <button id="signUp" class="signup" type="submit" name="signup">Sign up</button>
+                <button id="goLeft" class="signup off" type="button">Log In</button> 
+              </div>
+              <p class="register-message" id="registerMessage"></p>
+            </form>
           </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1" for="password">Password</label>
-          <div class="relative">
-            <input class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" id="password" name="password" placeholder="Enter your password" type="password" required />
-            <span class="material-icons absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">lock_outline</span>
+        <div style="scrollbar-width: none;" class="right">
+          <div class="content">
+            <img src="images/a2000-logo.jpeg" alt="A2000 Logo" style="display:block;margin:0 auto 1.5em auto;max-width:120px;width:60%;height:auto;">
+            <h2>Login</h2>
+            <form id="loginForm" method="post" onsubmit="return false;">
+              <div class="form-element form-stack">
+                <label for="login-email" class="form-label">Email</label>
+                <input id="login-email" type="email" name="email" required>
+              </div>
+              <div class="form-element form-stack">
+                <label for="login-password" class="form-label">Password</label>
+                <div style="position:relative;display:flex;align-items:center;">
+                  <input id="login-password" type="password" name="password" required style="flex:1;">
+                  <button type="button" id="toggleLoginPassword" aria-label="Show/Hide password" style="background:none;border:none;position:absolute;right:0;top:50%;transform:translateY(-50%);cursor:pointer;padding:0 8px;">
+                    <span id="loginEyeIcon">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#673AB7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+              <a href="#" style="display:block;margin:0.5em 0 1.2em 0;text-align:right;font-size:0.98em;color:#673AB7;text-decoration:none;opacity:0.85;">Forgot password?</a>
+              <div class="form-element form-submit">
+                <button id="logIn" class="login" type="submit" name="login">Log In</button>
+                <button id="goRight" class="login off" type="button" name="signup">Sign Up</button>
+              </div>
+              <p class="login-message" id="loginMessage"></p>
+            </form>
           </div>
         </div>
-        <button class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shadow-md transition duration-150" type="submit">LOGIN</button>
-        <p class="login-message" id="loginMessage"></p>
-      </form>
-      <p class="mt-8 text-center text-sm text-gray-600">
-        Don't have an account? <a class="font-medium text-indigo-600 hover:text-indigo-500" href="register.html">Register Now</a>
-      </p>
+      </div>
     </div>
-  </div>
-  <div class="hidden lg:flex w-1/2 bg-indigo-600 items-center justify-center p-12">
-    <div class="text-center">
-      <img alt="Student using laptop illustration" class="max-w-md mx-auto" src="images/student-illustration.jpeg" />
-    </div>
-  </div>
-</div>
-<script src="js/login.js"></script>
+    <script>
+      function setPanelClass(panel) {
+        document.body.classList.remove('signup-active', 'login-active');
+        document.body.classList.add(panel === 'signup' ? 'signup-active' : 'login-active');
+      }
+      $(document).ready(function(){
+        $('#goRight').on('click', function(){
+          $('#slideBox').animate({
+            'marginLeft' : '0'
+          }, 400, function() {
+            setPanelClass('login');
+          });
+          $('.topLayer').animate({
+            'marginLeft' : '100%'
+          });
+        });
+        $('#goLeft').on('click', function(){
+          if (window.innerWidth > 769){
+            $('#slideBox').animate({
+              'marginLeft' : '50%'
+            }, 400, function() {
+              setPanelClass('signup');
+            });
+          }
+          else {
+            $('#slideBox').animate({
+              'marginLeft' : '20%'
+            }, 400, function() {
+              setPanelClass('signup');
+            });
+          }
+          $('.topLayer').animate({
+            'marginLeft': '0'
+          });
+        });
+        // Initial state: set to signup-active (default panel)
+        setPanelClass('signup');
+      });
+      // Paper.js Canvas Animation
+      paper.install(window);
+      paper.setup(document.getElementById("canvas"));
+      var canvasWidth, canvasHeight, canvasMiddleX, canvasMiddleY;
+      var shapeGroup = new Group();
+      var positionArray = [];
+      function getCanvasBounds() {
+        canvasWidth = view.size.width;
+        canvasHeight = view.size.height;
+        canvasMiddleX = canvasWidth / 2;
+        canvasMiddleY = canvasHeight / 2;
+        var position1 = { x: (canvasMiddleX / 2) + 100, y: 100 };
+        var position2 = { x: 200, y: canvasMiddleY };
+        var position3 = { x: (canvasMiddleX - 50) + (canvasMiddleX / 2), y: 150 };
+        var position4 = { x: 0, y: canvasMiddleY + 100 };
+        var position5 = { x: canvasWidth - 130, y: canvasHeight - 75 };
+        var position6 = { x: canvasMiddleX + 80, y: canvasHeight - 50 };
+        var position7 = { x: canvasWidth + 60, y: canvasMiddleY - 50 };
+        var position8 = { x: canvasMiddleX + 100, y: canvasMiddleY + 100 };
+        positionArray = [position3, position2, position5, position4, position1, position6, position7, position8];
+      }
+      function initializeShapes() {
+        getCanvasBounds();
+        var shapePathData = [
+          'M231,352l445-156L600,0L452,54L331,3L0,48L231,352', 
+          'M0,0l64,219L29,343l535,30L478,37l-133,4L0,0z', 
+          'M0,65l16,138l96,107l270-2L470,0L337,4L0,65z',
+          'M333,0L0,94l64,219L29,437l570-151l-196-42L333,0',
+          'M331.9,3.6l-331,45l231,304l445-156l-76-196l-148,54L331.9,3.6z',
+          'M389,352l92-113l195-43l0,0l0,0L445,48l-80,1L122.7,0L0,275.2L162,297L389,352',
+          'M 50 100 L 300 150 L 550 50 L 750 300 L 500 250 L 300 450 L 50 100',
+          'M 700 350 L 500 350 L 700 500 L 400 400 L 200 450 L 250 350 L 100 300 L 150 50 L 350 100 L 250 150 L 450 150 L 400 50 L 550 150 L 350 250 L 650 150 L 650 50 L 700 150 L 600 250 L 750 250 L 650 300 L 700 350 '
+        ];
+        for (var i = 0; i <= shapePathData.length; i++) {
+          var headerShape = new Path({
+            strokeColor: 'rgba(255, 255, 255, 0.5)',
+            strokeWidth: 2,
+            parent: shapeGroup,
+          });
+          headerShape.pathData = shapePathData[i];
+          headerShape.scale(2);
+          headerShape.position = positionArray[i];
+        }
+      };
+      initializeShapes();
+      view.onFrame = function paperOnFrame(event) {
+        if (event.count % 4 === 0) {
+          for (var i = 0; i < shapeGroup.children.length; i++) {
+            if (i % 2 === 0) {
+              shapeGroup.children[i].rotate(-0.1);
+            } else {
+              shapeGroup.children[i].rotate(0.1);
+            }
+          }
+        }
+      };
+      view.onResize = function paperOnResize() {
+        getCanvasBounds();
+        for (var i = 0; i < shapeGroup.children.length; i++) {
+          shapeGroup.children[i].position = positionArray[i];
+        }
+        if (canvasWidth < 700) {
+          shapeGroup.children[3].opacity = 0;
+          shapeGroup.children[2].opacity = 0;
+          shapeGroup.children[5].opacity = 0;
+        } else {
+          shapeGroup.children[3].opacity = 1;
+          shapeGroup.children[2].opacity = 1;
+          shapeGroup.children[5].opacity = 1;
+        }
+      };
+      // SVGs for eye and eye-off
+      const eyeSVG = (color) => `<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='${color}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z'/><circle cx='12' cy='12' r='3'/></svg>`;
+      const eyeOffSVG = (color) => `<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='${color}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M17.94 17.94A10.06 10.06 0 0 1 12 19c-7 0-11-7-11-7a18.4 18.4 0 0 1 5.06-5.94M1 1l22 22'/><path d='M9.53 9.53A3 3 0 0 0 12 15a3 3 0 0 0 2.47-5.47'/></svg>`;
+      // Register password toggle
+      const regPwd = document.getElementById('password');
+      const regToggle = document.getElementById('toggleRegisterPassword');
+      const regEyeIcon = document.getElementById('registerEyeIcon');
+      if (regPwd && regToggle && regEyeIcon) {
+        regToggle.addEventListener('click', function() {
+          if (regPwd.type === 'password') {
+            regPwd.type = 'text';
+            regEyeIcon.innerHTML = eyeOffSVG('#0288D1');
+          } else {
+            regPwd.type = 'password';
+            regEyeIcon.innerHTML = eyeSVG('#03A9F4');
+          }
+        });
+      }
+      // Login password toggle
+      const loginPwd = document.getElementById('login-password');
+      const loginToggle = document.getElementById('toggleLoginPassword');
+      const loginEyeIcon = document.getElementById('loginEyeIcon');
+      if (loginPwd && loginToggle && loginEyeIcon) {
+        loginToggle.addEventListener('click', function() {
+          if (loginPwd.type === 'password') {
+            loginPwd.type = 'text';
+            loginEyeIcon.innerHTML = eyeOffSVG('#512DA8');
+          } else {
+            loginPwd.type = 'password';
+            loginEyeIcon.innerHTML = eyeSVG('#673AB7');
+          }
+        });
+      }
+    </script>
+    <script src="js/login.js"></script>
+    <script src="js/register.js"></script>
 </body>
 </html> 

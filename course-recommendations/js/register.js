@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:5001/api';
+if (typeof API_URL === 'undefined') {
+  var API_URL = 'http://localhost:5001/api';
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     const registerForm = document.getElementById('registerForm');
@@ -30,7 +32,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     registerMessage.style.color = 'green';
                     registerForm.reset(); // Clear the form
                     // Redirect to login page after successful registration
-                    setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+                    setTimeout(() => { 
+                        // Switch to login panel instead of redirect
+                        if (window.innerWidth > 769){
+                            $('#slideBox').animate({'marginLeft' : '50%'});
+                        } else {
+                            $('#slideBox').animate({'marginLeft' : '20%'});
+                        }
+                        $('.topLayer').animate({'marginLeft': '0'});
+                    }, 1000);
                 } else {
                     registerMessage.textContent = data.error || 'Registration failed';
                     registerMessage.style.color = 'red';
