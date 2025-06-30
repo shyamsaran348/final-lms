@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Assignment</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-container">
+            <a href="index.html" class="logo-link" aria-label="A2000 Solutions Home">
+                <img src="images/a2000-logo.jpeg" alt="A2000 Solutions Logo" class="company-logo">
+            </a>
+            <nav class="main-nav" id="main-nav" aria-label="Main Navigation">
+                <ul>
+                    <li><a href="index.html" class="nav-link">Courses</a></li>
+                    <li><a href="about.html" class="nav-link">About</a></li>
+                    <li><a href="../profile.html" class="nav-link">Profile</a></li>
+                    <li id="adminLink" style="display: none;"><a href="admin.html" class="nav-link"><i class="fas fa-shield-alt"></i> Admin Panel</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="main-content">
+            <div class="modern-card">
+                <h2>Add Assignment</h2>
+                <form id="addAssignmentForm" enctype="multipart/form-data">
+                    <label for="course_id">Course:</label>
+                    <select id="course_id" name="course_id" required></select>
+
+                    <label for="title">Title:</label>
+                    <input type="text" id="title" name="title" required>
+
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description"></textarea>
+
+                    <label for="due_date">Due Date:</label>
+                    <input type="datetime-local" id="due_date" name="due_date">
+
+                    <label for="file">Assignment File (optional):</label>
+                    <input type="file" id="file" name="file">
+
+                    <button type="submit" class="btn">Create Assignment</button>
+                    <div id="formMessage"></div>
+                </form>
+            </div>
+        </section>
+    </main>
+    <script src="js/assignment-add.js"></script>
+</body>
+</html> 

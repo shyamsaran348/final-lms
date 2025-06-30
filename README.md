@@ -32,8 +32,8 @@ final-main-2/
 ├── course-recommendations/   # Main frontend app (HTML, CSS, JS, images)
 ├── lms-backend/              # Flask backend (API, DB, static, templates)
 ├── images/                   # Shared images
-├── js/                       # Shared JS (if any)
-├── css/                      # Shared CSS (if any)
+├── run_all.sh                # Script to run backend & frontend together
+├── venv/                     # Python virtual environment (optional)
 ├── login.html, register.html, profile.html, ...
 ├── README.md                 # This file
 ├── requirements.txt          # Python dependencies
@@ -42,7 +42,7 @@ final-main-2/
 
 ---
 
-## ⚙️ Setup Instructions
+## ⚡ Quick Start (Recommended)
 
 ### 1. Clone the repository
 ```sh
@@ -62,24 +62,22 @@ cd final-lms
   pip install -r requirements.txt
   ```
 
-### 3. Database Setup
-- By default, uses SQLite. The DB will be created automatically on first run.
-- To reset or seed the DB, use scripts in `lms-backend/` (e.g., `reset_db.py`).
-
-### 4. Running the Backend (Flask API)
-```sh
-cd lms-backend
-python app.py
-```
-- The API will run at `http://localhost:5001/`
-
-### 5. Running the Frontend (Static Server)
-- From the project root, run:
+### 3. Run the Project (Backend & Frontend)
+- Make the script executable (first time only):
   ```sh
-  python -m http.server 5500
+  chmod +x run_all.sh
   ```
-- Open `http://localhost:5500/course-recommendations/index.html` in your browser.
-- All static assets and absolute paths will work from the project root.
+- Start both servers:
+  ```sh
+  ./run_all.sh
+  ```
+- The backend (Flask API) will run at:  
+  `http://localhost:5001/`
+- The frontend (static server) will run at:  
+  `http://localhost:5500/course-recommendations/index.html`
+
+#### To stop both servers
+- Press `Ctrl+C` in the terminal running the script.
 
 ---
 
@@ -90,6 +88,15 @@ python app.py
 - **Navigation:** Use the top nav bar for Courses, About, Profile, and Back to Courses.
 - **File Uploads:** Max file size 50MB. Only allowed file types are accepted.
 - **YouTube Video:** Admins/instructors can add a YouTube link for each course.
+
+---
+
+## 🛠️ Troubleshooting
+- **Port in use?** If you see an error about port 5001 or 5500, make sure no other process is using those ports, or change the port in the script and in your code as needed.
+- **404 errors for static files?** Make sure you open the frontend at the correct URL:  
+  `http://localhost:5500/course-recommendations/index.html`
+- **Virtual environment not found?** The script will still run, but it's recommended to use a virtual environment for Python dependencies.
+- **Database issues?** The SQLite DB is created automatically. To reset, use scripts in `lms-backend/` (e.g., `reset_db.py`).
 
 ---
 

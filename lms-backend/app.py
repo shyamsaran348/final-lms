@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, render_template, redirect, url_for, send_file
+from flask import Flask, request, jsonify, send_from_directory, render_template, redirect, url_for, send_file, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
@@ -10,10 +10,16 @@ from datetime import datetime
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import re
+from sqlalchemy import and_
 
 app = Flask(__name__)
 app.config.from_object(Config)
-CORS(app, supports_credentials=True, allow_headers=["Content-Type", "X-User-Email", "X-User-Role"])
+CORS(
+    app,
+    supports_credentials=True,
+    allow_headers=["Content-Type", "X-User-Email", "X-User-Role"],
+    origins=["http://localhost:5500"]
+)
 
 # --- Security: Rate Limiting ---
 limiter = Limiter(
@@ -21,6 +27,11 @@ limiter = Limiter(
     app=app,
     default_limits=["200 per day", "50 per hour"]
 )
+
+# Exempt all OPTIONS requests from rate limiting
+@limiter.request_filter
+def exempt_options():
+    return request.method == 'OPTIONS'
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -52,6 +63,7 @@ class Course(db.Model):
     title = db.Column(db.String(200), nullable=False)
     author = db.Column(db.String(120), nullable=False)
     image = db.Column(db.String(255), nullable=True)
+    image_data = db.Column(db.LargeBinary, nullable=True)  # New field for image binary data
     button_type = db.Column(db.String(20), nullable=False)
     button_label = db.Column(db.String(100), nullable=False)
     detail_page = db.Column(db.String(255), nullable=True)
@@ -66,7 +78,7 @@ class Course(db.Model):
             'id': self.id,
             'title': self.title,
             'author': self.author,
-            'image': self.image,
+            'image': self.image,  # Keep for backward compatibility
             'detailPage': self.detail_page,
             'youtube_url': self.youtube_url,
             'modules': [module.to_dict() for module in self.modules]
@@ -316,14 +328,38 @@ def delete_user(user_id):
 @app.route('/api/courses', methods=['POST'])
 @admin_required
 def create_course():
-    data = request.get_json()
-    required_fields = ['title', 'author', 'image', 'button_type', 'button_label']
-    
-    for field in required_fields:
-        if field not in data:
-            return jsonify({'message': f'Missing required field: {field}'}), 400
-    
-    new_course = Course(**data)
+    title = request.form.get('title')
+    author = request.form.get('author')
+    detail_page = request.form.get('detail_page')
+    image_file = request.files.get('image')
+
+    # Save the image file if present
+    image_path = None
+    image_data = None
+    if image_file and image_file.filename:
+        # Save to course-recommendations/course_files/
+        static_course_files = os.path.join(os.path.dirname(__file__), '..', 'course-recommendations', 'course_files')
+        os.makedirs(static_course_files, exist_ok=True)
+        filename = secure_filename(image_file.filename)
+        save_path = os.path.join(static_course_files, filename)
+        image_file.save(save_path)
+        image_path = f'course-recommendations/course_files/{filename}'
+        image_file.seek(0)
+        image_data = image_file.read()
+
+    # Set default values for button_type and button_label
+    button_type = 'learn'
+    button_label = f'Learn {title}'
+
+    new_course = Course(
+        title=title,
+        author=author,
+        image=image_path,
+        image_data=image_data,
+        button_type=button_type,
+        button_label=button_label,
+        detail_page=detail_page
+    )
     db.session.add(new_course)
     db.session.commit()
     return jsonify({'message': 'Course created successfully', 'course': new_course.to_dict()}), 201
@@ -835,6 +871,209 @@ def update_course_youtube(course_id):
         course.youtube_url = youtube_url
     db.session.commit()
     return jsonify(course.to_dict()), 200
+
+@app.route('/api/courses/<int:course_id>/image', methods=['GET'])
+@limiter.exempt
+def get_course_image(course_id):
+    course = Course.query.get_or_404(course_id)
+    if course.image_data:
+        # Try to guess mime type from image path or default to jpeg
+        mime = 'image/jpeg'
+        if course.image and course.image.lower().endswith('.png'):
+            mime = 'image/png'
+        elif course.image and course.image.lower().endswith('.gif'):
+            mime = 'image/gif'
+        return Response(course.image_data, mimetype=mime)
+    else:
+        # Optionally, serve a default image
+        return send_from_directory(os.path.join(app.root_path, 'static', 'images'), 'a2000-logo.jpeg')
+
+# --- Assignment Models ---
+class Assignment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id', ondelete='CASCADE'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    due_date = db.Column(db.DateTime, nullable=True)
+    file_path = db.Column(db.String(255), nullable=True)  # Optional file for assignment description
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    submissions = db.relationship('AssignmentSubmission', backref='assignment', cascade='all, delete-orphan', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'course_id': self.course_id,
+            'title': self.title,
+            'description': self.description,
+            'due_date': self.due_date.isoformat() if self.due_date else None,
+            'file_path': self.file_path,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class AssignmentSubmission(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    assignment_id = db.Column(db.Integer, db.ForeignKey('assignment.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    text_answer = db.Column(db.Text, nullable=True)
+    file_path = db.Column(db.String(255), nullable=True)
+    submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'assignment_id': self.assignment_id,
+            'user_id': self.user_id,
+            'text_answer': self.text_answer,
+            'file_path': self.file_path,
+            'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None
+        }
+
+# --- MIGRATION INSTRUCTIONS ---
+# If using Flask-Migrate:
+# flask db migrate -m "Add assignments and assignment submissions"
+# flask db upgrade
+# Or, for PostgreSQL, run:
+# CREATE TABLE assignment (...);
+# CREATE TABLE assignment_submission (...);
+
+# --- Assignment Endpoints ---
+@app.route('/api/assignments', methods=['POST'])
+@instructor_required
+def create_assignment():
+    data = request.form
+    title = data.get('title')
+    description = data.get('description')
+    due_date = data.get('due_date')
+    course_id = data.get('course_id')
+    file = request.files.get('file')
+    file_path = None
+    if not title or not course_id:
+        return jsonify({'message': 'Missing title or course_id'}), 400
+    if file:
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+    assignment = Assignment(
+        title=title,
+        description=description,
+        due_date=datetime.strptime(due_date, '%Y-%m-%dT%H:%M') if due_date else None,
+        course_id=course_id,
+        file_path=filename if file else None
+    )
+    db.session.add(assignment)
+    db.session.commit()
+    return jsonify({'message': 'Assignment created', 'assignment': assignment.to_dict()}), 201
+
+@app.route('/api/assignments', methods=['GET'])
+def list_assignments():
+    course_id = request.args.get('course_id')
+    if not course_id:
+        return jsonify({'message': 'Missing course_id'}), 400
+    user = get_current_user()
+    if not user:
+        return jsonify({'message': 'Authentication required'}), 401
+    # Admins/instructors can view all assignments for the course
+    if user.role in ['admin', 'instructor']:
+        assignments = Assignment.query.filter_by(course_id=course_id).order_by(Assignment.due_date).all()
+        return jsonify([a.to_dict() for a in assignments])
+    # Students: only if enrolled
+    assigned = StudentCourse.query.filter_by(user_id=user.id, course_id=course_id).first()
+    if not assigned:
+        return jsonify({'message': 'Access denied'}), 403
+    assignments = Assignment.query.filter_by(course_id=course_id).order_by(Assignment.due_date).all()
+    return jsonify([a.to_dict() for a in assignments])
+
+# --- Assignment Submission Endpoints ---
+@app.route('/api/assignments/<int:assignment_id>/submit', methods=['POST'])
+def submit_assignment(assignment_id):
+    user = get_current_user()
+    if not user or user.role != 'student':
+        return jsonify({'message': 'Only students can submit assignments'}), 403
+    assignment = Assignment.query.get_or_404(assignment_id)
+    # Check if student is enrolled in the course
+    assigned = StudentCourse.query.filter_by(user_id=user.id, course_id=assignment.course_id).first()
+    if not assigned:
+        return jsonify({'message': 'Access denied'}), 403
+    text_answer = request.form.get('text_answer')
+    file = request.files.get('file')
+    file_path = None
+    if file:
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+    submission = AssignmentSubmission(
+        assignment_id=assignment_id,
+        user_id=user.id,
+        text_answer=text_answer,
+        file_path=filename if file else None
+    )
+    db.session.add(submission)
+    db.session.commit()
+    return jsonify({'message': 'Submission successful', 'submission': submission.to_dict()}), 201
+
+@app.route('/api/assignments/<int:assignment_id>/submissions', methods=['GET'])
+def view_submissions(assignment_id):
+    user = get_current_user()
+    if not user or user.role not in ['admin', 'instructor']:
+        return jsonify({'message': 'Only instructors or admins can view submissions'}), 403
+    assignment = Assignment.query.get_or_404(assignment_id)
+    submissions = AssignmentSubmission.query.filter_by(assignment_id=assignment_id).all()
+    result = []
+    for s in submissions:
+        student = User.query.get(s.user_id)
+        sub_dict = s.to_dict()
+        sub_dict['user_name'] = student.username if student else ''
+        sub_dict['user_email'] = student.email if student else ''
+        result.append(sub_dict)
+    return jsonify(result)
+
+@app.route('/api/assignments/<int:assignment_id>/my-submission', methods=['GET'])
+def get_my_submission(assignment_id):
+    user = get_current_user()
+    if not user or user.role != 'student':
+        return jsonify({'message': 'Only students can view their submission'}), 403
+    submission = AssignmentSubmission.query.filter_by(assignment_id=assignment_id, user_id=user.id).first()
+    if not submission:
+        return jsonify({})
+    return jsonify(submission.to_dict())
+
+@app.route('/api/assignments/<int:assignment_id>', methods=['GET', 'OPTIONS'])
+def get_assignment(assignment_id):
+    if request.method == 'OPTIONS':
+        return '', 204
+    user = get_current_user()
+    if not user:
+        return jsonify({'message': 'Authentication required'}), 401
+    assignment = Assignment.query.get(assignment_id)
+    if not assignment:
+        return jsonify({'message': 'Assignment not found'}), 404
+    # Only allow if user is admin, instructor, or enrolled student
+    if user.role in ['admin', 'instructor']:
+        return jsonify(assignment.to_dict())
+    assigned = StudentCourse.query.filter_by(user_id=user.id, course_id=assignment.course_id).first()
+    if not assigned:
+        return jsonify({'message': 'Access denied'}), 403
+    return jsonify(assignment.to_dict())
+
+@app.route('/api/assignments/<int:assignment_id>', methods=['DELETE'])
+@instructor_required
+def delete_assignment(assignment_id):
+    assignment = Assignment.query.get_or_404(assignment_id)
+    
+    # Delete the assignment file if it exists
+    if assignment.file_path:
+        try:
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], assignment.file_path)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            print(f"Error deleting assignment file: {e}")
+    
+    # Delete the assignment (cascade will handle submissions)
+    db.session.delete(assignment)
+    db.session.commit()
+    
+    return jsonify({'message': 'Assignment deleted successfully'}), 200
 
 if __name__ == "__main__":
     app.run(port=5001, debug=True) 
