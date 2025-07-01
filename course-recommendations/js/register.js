@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         $('.topLayer').animate({'marginLeft': '0'});
                     }, 1000);
                 } else {
-                    registerMessage.textContent = data.error || 'Registration failed';
+                    registerMessage.textContent = data.message || data.error || 'Registration failed';
                     registerMessage.style.color = 'red';
                 }
             } catch (error) {

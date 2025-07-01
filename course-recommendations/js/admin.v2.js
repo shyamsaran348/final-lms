@@ -1,4 +1,4 @@
-if (typeof API_URL === 'undefined') {
+    if (typeof API_URL === 'undefined') {
   var API_URL = 'http://localhost:5001/api';
 }
 
@@ -269,8 +269,60 @@ function handleAddCourse(event) {
 }
 
 // Edit course (placeholder for future implementation)
-function editCourse(courseId) {
-    showMessage('Edit functionality is not yet implemented.', 'info');
+window.editCourse = function(courseId) {
+    console.log('editCourse called', courseId);
+    try {
+        console.log('About to fetch course data for', courseId);
+        fetch(`${API_URL}/courses/${courseId}`)
+          .then(res => {
+            console.log('Fetch response received', res);
+            return res.json();
+          })
+          .then(course => {
+            console.log('Course data received', course);
+            document.getElementById('editCourseId').value = courseId;
+            document.getElementById('editCourseTitle').value = course.title || '';
+            document.getElementById('editCourseAuthor').value = course.author || '';
+            document.getElementById('editCourseDescription').value = course.description || course.detail_page || '';
+            // Show image preview if available
+            const imgPreview = document.getElementById('editCourseImagePreview');
+            if (course.image) {
+              let imgPath = course.image;
+              if (imgPath.startsWith('course-recommendations/')) {
+                imgPath = imgPath.replace(/^course-recommendations\//, '');
+              }
+              imgPreview.src = `/course-recommendations/${imgPath}`;
+              imgPreview.style.display = 'block';
+            } else {
+              imgPreview.style.display = 'none';
+            }
+            // Defensive check for file input
+            const fileInput = document.getElementById('editCourseImage');
+            if (!fileInput || fileInput.type !== 'file') {
+              console.warn('editCourseImage input not found or not a file input:', fileInput);
+            }
+            console.log('About to show modal');
+            const modal = document.getElementById('editCourseModal');
+            modal.classList.add('active');
+            modal.style.display = 'flex';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100vw';
+            modal.style.height = '100vh';
+            modal.style.background = 'rgba(0,0,0,0.35)';
+            modal.style.zIndex = 9999;
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.opacity = 1;
+            modal.style.visibility = 'visible';
+          })
+          .catch(err => {
+            console.error('Fetch or processing error in editCourse:', err);
+          });
+    } catch (err) {
+        console.error('editCourse error:', err);
+    }
 }
 
 // Show message
@@ -365,56 +417,91 @@ function openCourseModal(userId, username, role) {
 }
 
 // --- Edit Course Modal Logic ---
-window.editCourse = function(courseId) {
-    // Find course data from the table row
-    const row = Array.from(document.querySelectorAll('#coursesTable tbody tr')).find(tr => tr.querySelector('td') && tr.querySelector('td').textContent == courseId);
-    if (!row) return;
-    document.getElementById('editCourseId').value = courseId;
-    document.getElementById('editCourseTitle').value = row.children[1].textContent;
-    document.getElementById('editCourseAuthor').value = row.children[2].textContent;
-    document.getElementById('editCourseImage').value = '';
-    // Optionally fetch full course data from backend for image path
-    fetch(`${API_URL}/courses/${courseId}`)
-      .then(res => res.json())
-      .then(course => {
-        document.getElementById('editCourseImage').value = course.image || '';
-      });
-    document.getElementById('editCourseModal').style.display = '';
+// Add image preview on file select
+const editCourseImageInput = document.getElementById('editCourseImage');
+const editCourseImagePreview = document.getElementById('editCourseImagePreview');
+if (editCourseImageInput && editCourseImagePreview) {
+    editCourseImageInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                editCourseImagePreview.src = e.target.result;
+                editCourseImagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(this.files[0]);
+        } else {
+            editCourseImagePreview.style.display = 'none';
+        }
+    });
+}
+
+// Reset form on close/cancel
+function resetEditCourseForm() {
+    document.getElementById('editCourseForm').reset();
+    editCourseImagePreview.src = '';
+    editCourseImagePreview.style.display = 'none';
 }
 document.getElementById('closeEditCourseModal').onclick = function() {
-    document.getElementById('editCourseModal').style.display = 'none';
+    const modal = document.getElementById('editCourseModal');
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+    resetEditCourseForm();
 };
 document.getElementById('cancelEditCourseBtn').onclick = function() {
-    document.getElementById('editCourseModal').style.display = 'none';
+    const modal = document.getElementById('editCourseModal');
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+    resetEditCourseForm();
 };
+
 document.getElementById('editCourseForm').onsubmit = function(e) {
     e.preventDefault();
     const id = document.getElementById('editCourseId').value;
-    const data = {
-        title: document.getElementById('editCourseTitle').value,
-        author: document.getElementById('editCourseAuthor').value,
-        image: document.getElementById('editCourseImage').value,
-    };
+    const title = document.getElementById('editCourseTitle').value.trim();
+    const author = document.getElementById('editCourseAuthor').value.trim();
+    const description = document.getElementById('editCourseDescription').value.trim();
+    const imageInput = document.getElementById('editCourseImage');
+    const messageDiv = document.getElementById('message');
+    // Validation
+    if (!title || !author) {
+        messageDiv.textContent = 'Title and Author are required.';
+        messageDiv.className = 'message error';
+        messageDiv.style.display = 'block';
+        return;
+    }
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('author', author);
+    formData.append('description', description);
+    if (imageInput && imageInput.files && imageInput.files[0]) {
+        formData.append('image', imageInput.files[0]);
+    }
     fetch(`${API_URL}/courses/${id}`, {
         method: 'PUT',
         headers: {
-            'Content-Type': 'application/json',
             'X-User-Role': 'admin'
         },
-        body: JSON.stringify(data)
+        body: formData
     })
     .then(res => res.json().then(data => ({ ok: res.ok, data })))
     .then(({ ok, data }) => {
         if (ok) {
             showMessage('Course updated!', 'success');
-            document.getElementById('editCourseModal').style.display = 'none';
+            const modal = document.getElementById('editCourseModal');
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+            resetEditCourseForm();
             loadCourses();
         } else {
-            showMessage(data.message || 'Failed to update course', 'error');
+            messageDiv.textContent = data.message || 'Failed to update course';
+            messageDiv.className = 'message error';
+            messageDiv.style.display = 'block';
         }
     })
     .catch(() => {
-        showMessage('Failed to update course', 'error');
+        messageDiv.textContent = 'Failed to update course';
+        messageDiv.className = 'message error';
+        messageDiv.style.display = 'block';
     });
 };
 

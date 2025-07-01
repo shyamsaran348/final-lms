@@ -3,123 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile | A2000 LMS</title>
+    <title>My Profile</title>
     <link rel="stylesheet" href="course-recommendations/css/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .profile-container {
-            max-width: 600px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        body {
+            background: linear-gradient(120deg, #f7fafd 0%, #e9eff7 100%);
         }
-        .profile-container h1 {
-            text-align: center;
-            margin-bottom: 1.5rem;
-        }
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #333;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
-        .btn-save {
-            width: 100%;
-            padding: 0.85rem;
-            border: none;
-            border-radius: 4px;
-            background-color: #2d64bc;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .btn-save:hover {
-            background-color: #17408b;
-        }
-        .profile-box {
-            background: #f7f8fa;
-            border: 1.5px solid #e0e7ef;
-            border-radius: 7px;
-            padding: 0.7em 1em;
-            margin-top: 0.2em;
-            margin-bottom: 0.5em;
-            font-size: 1.08em;
-            font-weight: 600;
+        .main-header {
+            background: #fff !important;
             color: #222;
-            letter-spacing: 0.01em;
-            box-shadow: 0 1px 4px rgba(44,62,80,0.04);
+            box-shadow: 0 2px 8px rgba(44,62,80,0.04);
+            padding: 0;
+        }
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            padding: 0 2em;
+        }
+        .logo-link {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            margin-right: 2em;
+        }
+        .company-logo {
+            height: 40px;
+            width: auto;
+            border-radius: 6px;
+            background: #f3f6fa;
+        }
+        .main-nav ul {
+            display: flex;
+            align-items: center;
+            gap: 1.5em;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .main-nav .nav-link {
+            color: #222;
+            font-weight: 500;
+            font-size: 1.08rem;
+            padding: 0.5em 1.2em;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: background 0.15s, color 0.15s;
+        }
+        .main-nav .nav-link.active, .main-nav .nav-link:focus {
+            background: #2563eb;
+            color: #fff;
+        }
+        .main-nav .nav-link:hover:not(.active) {
+            background: #f1f5fd;
+            color: #2563eb;
+        }
+        .btn-back {
+            background: #e0e7ff;
+            color: #2563eb;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6em 1.3em;
+            margin: 2.5em 0 0 2.5em;
+            box-shadow: 0 2px 8px rgba(37,99,235,0.07);
+            display: flex;
+            align-items: center;
+            gap: 0.6em;
+            font-size: 1.08rem;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .btn-back:hover {
+            background: #2563eb;
+            color: #fff;
+        }
+        .profile-main-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh;
+        }
+        .profile-card {
+            background: #fff;
+            border-radius: 22px;
+            box-shadow: 0 8px 32px rgba(44,62,80,0.10);
+            padding: 2.5em 2.5em 2em 2.5em;
+            max-width: 420px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .profile-avatar-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1.2em;
+        }
+        .profile-avatar {
+            width: 92px;
+            height: 92px;
+            border-radius: 50%;
+            background: #e0e7ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5em;
+            color: #2563eb;
+        }
+        .profile-title {
+            font-size: 2.1rem;
+            font-weight: 800;
+            margin-bottom: 1.5em;
+            color: #222;
+        }
+        .profile-field {
+            width: 100%;
+            margin-bottom: 1.2em;
+        }
+        .profile-label {
+            display: flex;
+            align-items: center;
+            font-size: 1.05em;
+            color: #2563eb;
+            font-weight: 600;
+            margin-bottom: 0.3em;
+            gap: 0.5em;
+        }
+        .profile-value, .profile-input {
+            width: 100%;
+            background: #f3f6fa;
+            border: none;
+            border-radius: 8px;
+            padding: 0.9em 1.1em;
+            font-size: 1.08em;
+            color: #222;
+            font-weight: 500;
+            margin-top: 0.1em;
+        }
+        .profile-input:focus {
+            outline: 2px solid #2563eb;
+            background: #e0e7ff;
+        }
+        .profile-actions {
+            width: 100%;
+            margin-top: 1.5em;
+        }
+        .profile-btn {
+            width: 100%;
+            background: #2563eb;
+            color: #fff;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            padding: 1em 0;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.7em;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .profile-btn:hover {
+            background: #1746a2;
+        }
+        @media (max-width: 600px) {
+            .header-container { padding: 0 0.7em; }
+            .btn-back { margin-left: 0.7em; }
+            .profile-card { padding: 1.2em 0.7em 1em 0.7em; }
         }
     </style>
 </head>
 <body>
     <header class="main-header">
         <div class="header-container">
-            <div class="logo">
-                <a href="/course-recommendations/index.html" aria-label="A2000 Solutions Home">
-                    <img src="course-recommendations/images/a2000-logo.jpeg" alt="A2000 Solutions Logo" class="company-logo">
-                </a>
-            </div>
-            <nav class="main-nav" aria-label="Main navigation">
+            <a href="course-recommendations/index.html" class="logo-link" aria-label="A2000 Solutions Home">
+                <img src="images/a2000-logo.jpeg" alt="A2000 Solutions Logo" class="company-logo">
+            </a>
+            <nav class="main-nav" id="main-nav" aria-label="Main Navigation">
                 <ul>
-                    <li><a href="/course-recommendations/index.html">Home</a></li>
-                    <li><a href="profile.html" class="active">Profile</a></li>
+                    <li><a href="course-recommendations/index.html" class="nav-link">Courses</a></li>
+                    <li><a href="profile.html" class="nav-link active">My Profile</a></li>
                 </ul>
             </nav>
+            <div class="user-profile">
+                <span style="font-weight:600; color:#222;">Welcome, test1 (Instructor)</span>
+            </div>
         </div>
     </header>
-
+    <button class="btn-back" onclick="window.location.href='course-recommendations/index.html'" aria-label="Back to Courses"><i class="fas fa-arrow-left"></i> Back To Courses</button>
     <main>
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin-top:2.5em;">
-            <div class="profile-container" style="max-width:420px;width:100%;padding:2.5em 2.5em 2em 2.5em;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,0.07),0 1.5px 6px rgba(0,0,0,0.03);background:#fff;">
-                <h1 style="text-align:center;margin-bottom:1.5rem;font-size:2rem;font-weight:800;color:#222;">My Profile</h1>
-                <div id="profile-view" style="display:block;">
-                    <div class="form-group">
-                        <label>Username</label>
-                        <div class="profile-box"><span id="view-username" style="font-size:1.1em;color:#333;font-weight:600;"></span></div>
+        <div class="profile-main-wrapper">
+            <div class="profile-card">
+                <div class="profile-avatar-wrapper">
+                    <div class="profile-avatar" id="profileAvatar">
+                        <i class="fas fa-user"></i>
                     </div>
-                    <div class="form-group">
-                        <label>Email</label>
-                        <div class="profile-box"><span id="view-email" style="font-size:1.1em;color:#333;font-weight:600;"></span></div>
-                    </div>
-                    <button id="edit-profile-btn" class="btn-save" style="width:100%;padding:0.95rem 0;font-size:1.15rem;border-radius:10px;background:linear-gradient(90deg,#6366f1 0%,#60a5fa 100%);font-weight:800;">Edit Profile</button>
                 </div>
-                <form id="profile-form" style="display:none;">
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" id="username" name="username" required>
+                <h1 class="profile-title">My Profile</h1>
+                <div id="profile-view">
+                    <div class="profile-field">
+                        <span class="profile-label"><i class="fas fa-user"></i> Username</span>
+                        <span class="profile-value" id="view-username"></span>
                     </div>
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
+                    <div class="profile-field">
+                        <span class="profile-label"><i class="fas fa-envelope"></i> Email</span>
+                        <span class="profile-value" id="view-email"></span>
                     </div>
-                    <div class="form-group">
-                        <label for="password">New Password (optional)</label>
-                        <input type="password" id="password" name="password" placeholder="Leave blank to keep current password">
+                    <div class="profile-actions">
+                        <button class="profile-btn" id="edit-profile-btn"><i class="fas fa-pen"></i> Edit Profile</button>
                     </div>
-                    <div style="display:flex;gap:0.5em;">
-                        <button type="submit" class="btn-save" style="flex:1;">Save</button>
-                        <button type="button" id="cancel-edit-btn" class="btn-save" style="flex:1;background:#eee;color:#333;box-shadow:none;">Cancel</button>
+                </div>
+                <form id="profile-form" style="display:none; width:100%;">
+                    <div class="profile-field">
+                        <span class="profile-label"><i class="fas fa-user"></i> Username</span>
+                        <input type="text" class="profile-input" id="username" name="username" required>
+                    </div>
+                    <div class="profile-field">
+                        <span class="profile-label"><i class="fas fa-envelope"></i> Email</span>
+                        <input type="email" class="profile-input" id="email" name="email" required>
+                    </div>
+                    <div class="profile-field">
+                        <span class="profile-label"><i class="fas fa-lock"></i> New Password (optional)</span>
+                        <div style="position:relative;display:flex;align-items:center;">
+                            <input type="password" class="profile-input" id="password" name="password" placeholder="Leave blank to keep current password" style="padding-right:2.5em;">
+                            <button type="button" id="togglePassword" class="profile-password-toggle" tabindex="-1" style="position:absolute;right:0.7em;background:none;border:none;color:#2563eb;font-size:1.1em;cursor:pointer;"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="profile-actions" style="display:flex;gap:0.7em;">
+                        <button type="submit" class="profile-btn"><i class="fas fa-save"></i> Save</button>
+                        <button type="button" class="profile-btn" id="cancel-edit-btn" style="background:#e0e7ff;color:#2563eb;"><i class="fas fa-times"></i> Cancel</button>
                     </div>
                 </form>
-                <div id="profile-message" style="margin-top:1em;text-align:center;font-weight:600;"></div>
+                <div id="profile-message" class="profile-message"></div>
+                <div id="profile-loading" class="profile-loading" style="display:none;"><span class="spinner"></span></div>
+                <div id="profile-success" class="profile-success" style="display:none;"><i class="fas fa-check-circle"></i> Saved!</div>
             </div>
         </div>
     </main>
-
     <script src="course-recommendations/js/profile.js"></script>
+    <script>
+      // Ensure password toggle works with new markup
+      document.addEventListener('DOMContentLoaded', function() {
+        var togglePasswordBtn = document.getElementById('togglePassword');
+        var passwordInput = document.getElementById('password');
+        if (togglePasswordBtn && passwordInput) {
+          togglePasswordBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (passwordInput.type === 'password') {
+              passwordInput.type = 'text';
+              togglePasswordBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+            } else {
+              passwordInput.type = 'password';
+              togglePasswordBtn.innerHTML = '<i class="fas fa-eye"></i>';
+            }
+          });
+        }
+      });
+    </script>
+    <script src="course-recommendations/js/main.v2.js"></script>
 </body>
 </html> 

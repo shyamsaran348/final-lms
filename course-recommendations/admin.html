@@ -228,6 +228,35 @@
             padding: 2rem;
             color: #666;
         }
+        
+        #editCourseModal {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.35);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto !important;
+        }
+        #editCourseModal.active {
+            display: flex !important;
+            pointer-events: auto !important;
+        }
+        #editCourseModal .modal-content {
+            background: #fff;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90vw;
+            margin: auto;
+            padding: 2rem;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(44,62,80,0.18);
+            pointer-events: auto;
+        }
     </style>
 </head>
 <body>
@@ -380,8 +409,13 @@
             <input type="text" id="editCourseAuthor" required>
           </div>
           <div class="form-group">
-            <label for="editCourseImage">Image Path</label>
-            <input type="text" id="editCourseImage" required>
+            <label for="editCourseImage">Course Image</label>
+            <input type="file" id="editCourseImage" accept="image/*">
+            <img id="editCourseImagePreview" src="" alt="Current Image" style="max-width:120px;margin-top:0.5em;display:none;">
+          </div>
+          <div class="form-group">
+            <label for="editCourseDescription">Description / Detail Page</label>
+            <textarea id="editCourseDescription" rows="3" placeholder="Course description or detail page link"></textarea>
           </div>
           <div style="text-align:right;">
             <button type="button" class="btn btn-secondary" id="cancelEditCourseBtn">Cancel</button>

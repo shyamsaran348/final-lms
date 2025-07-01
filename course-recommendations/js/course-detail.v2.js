@@ -1271,20 +1271,21 @@ function showAssignmentSubmissionModal(assignmentId) {
         formData.append('text_answer', text);
         if (fileInput.files[0]) formData.append('file', fileInput.files[0]);
         formData.append('assignment_id', assignmentId);
-        
+        // Check if editing or new submission
+        const isEdit = document.getElementById('submission-modal-title').textContent === 'Edit Submission';
+        const method = isEdit ? 'PUT' : 'POST';
+        const url = isEdit ? `${API_URL}/assignments/${assignmentId}/my-submission` : `${API_URL}/assignments/${assignmentId}/submit`;
         statusDiv.style.display = 'block';
         statusDiv.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
         statusDiv.style.color = '#92400e';
         statusDiv.style.border = '1px solid #f59e0b';
         statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-        
         try {
-            const res = await fetch(`${API_URL}/assignments/${assignmentId}/submit`, {
-                method: 'POST',
+            const res = await fetch(url, {
+                method,
                 body: formData,
                 headers: { 'X-User-Email': localStorage.getItem('email') || '' }
             });
-            
             if (res.ok) {
                 statusDiv.style.background = 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)';
                 statusDiv.style.color = '#166534';

@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }, 500);
                 } else {
-                    loginMessage.textContent = data.error || 'Login failed';
+                    loginMessage.textContent = data.message || data.error || 'Login failed';
                     loginMessage.style.color = 'red';
                 }
             } catch (error) {

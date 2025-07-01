@@ -6,8 +6,9 @@
     <title>Assignment Submissions</title>
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
 </head>
-<body>
+<body class="min-h-screen flex flex-col">
     <header class="main-header">
         <div class="header-container">
             <a href="index.html" class="logo-link" aria-label="A2000 Solutions Home">
@@ -16,26 +17,24 @@
             <nav class="main-nav" id="main-nav" aria-label="Main Navigation">
                 <ul>
                     <li><a href="index.html" class="nav-link">Courses</a></li>
-                    <li><a href="about.html" class="nav-link">About</a></li>
-                    <li><a href="../profile.html" class="nav-link">Profile</a></li>
+                    <li><a href="/course-recommendations/index.html#about" class="nav-link">About</a></li>
+                    <li><!-- Profile link removed --></li>
                     <li id="adminLink" style="display: none;"><a href="admin.html" class="nav-link"><i class="fas fa-shield-alt"></i> Admin Panel</a></li>
                 </ul>
             </nav>
         </div>
     </header>
-    <main class="container">
-        <section class="main-content">
+    <main class="flex-1 flex items-center justify-center w-full">
+        <section class="main-content w-full flex flex-col items-center gap-10">
+            <button onclick="window.history.length > 1 ? window.history.back() : window.location.href='course-detail.html'" class="back-btn mx-auto mb-4 flex items-center gap-2 px-6 py-2 rounded-xl bg-white hover:bg-indigo-100 text-indigo-700 font-bold text-base shadow-lg transition border border-indigo-200" style="margin-top: 2rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
             <div class="modern-card" id="assignmentDetails">
                 <!-- Assignment details will be loaded here -->
             </div>
-            <div class="modern-card">
-                <h2>Student Submissions</h2>
-                <div id="submissionsTableContainer">
-                    <!-- Submissions table will be loaded here -->
-                </div>
-            </div>
+            <div id="submissionsTableContainer" class="w-full"></div>
         </section>
     </main>
-    <script src="js/assignment-submissions.js"></script>
+    <script src="js/assignment-submissions.js?v=2"></script>
 </body>
 </html> 

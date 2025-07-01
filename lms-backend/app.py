@@ -11,6 +11,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import re
 from sqlalchemy import and_
+import io
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -25,7 +26,7 @@ CORS(
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["200 per day", "50 per hour"]
+    default_limits=["1000 per day", "200 per hour"]
 )
 
 # Exempt all OPTIONS requests from rate limiting
@@ -68,6 +69,7 @@ class Course(db.Model):
     button_label = db.Column(db.String(100), nullable=False)
     detail_page = db.Column(db.String(255), nullable=True)
     youtube_url = db.Column(db.String(255), nullable=True)
+    description = db.Column(db.Text, nullable=True)  # <-- Added description column
     modules = db.relationship('Module', backref='course', cascade='all, delete-orphan', lazy=True)
 
     def __repr__(self):
@@ -79,6 +81,7 @@ class Course(db.Model):
             'title': self.title,
             'author': self.author,
             'image': self.image,  # Keep for backward compatibility
+            'description': self.description,  # Always provide a description
             'detailPage': self.detail_page,
             'youtube_url': self.youtube_url,
             'modules': [module.to_dict() for module in self.modules]
@@ -370,12 +373,38 @@ def update_course(course_id):
     course = Course.query.get(course_id)
     if not course:
         return jsonify({'message': 'Course not found'}), 404
-    
-    data = request.get_json()
-    for field, value in data.items():
-        if hasattr(course, field):
-            setattr(course, field, value)
-    
+
+    # Support both JSON and multipart/form-data
+    if request.content_type and request.content_type.startswith('multipart/form-data'):
+        title = request.form.get('title')
+        author = request.form.get('author')
+        description = request.form.get('description')
+        image_file = request.files.get('image')
+
+        if title:
+            course.title = title
+        if author:
+            course.author = author
+        if description is not None:
+            course.description = description
+
+        # Handle image upload if present
+        if image_file and image_file.filename:
+            static_course_files = os.path.join(os.path.dirname(__file__), '..', 'course-recommendations', 'course_files')
+            os.makedirs(static_course_files, exist_ok=True)
+            filename = secure_filename(image_file.filename)
+            save_path = os.path.join(static_course_files, filename)
+            image_file.save(save_path)
+            course.image = f'course-recommendations/course_files/{filename}'
+            image_file.seek(0)
+            course.image_data = image_file.read()
+    else:
+        # Fallback to JSON (for API clients)
+        data = request.get_json()
+        for field, value in data.items():
+            if hasattr(course, field):
+                setattr(course, field, value)
+
     db.session.commit()
     return jsonify({'message': 'Course updated successfully', 'course': course.to_dict()}), 200
 
@@ -917,6 +946,9 @@ class AssignmentSubmission(db.Model):
     text_answer = db.Column(db.Text, nullable=True)
     file_path = db.Column(db.String(255), nullable=True)
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+    file_data = db.Column(db.LargeBinary, nullable=True)
+    file_name = db.Column(db.String(255), nullable=True)
+    file_mime = db.Column(db.String(255), nullable=True)
 
     def to_dict(self):
         return {
@@ -925,7 +957,9 @@ class AssignmentSubmission(db.Model):
             'user_id': self.user_id,
             'text_answer': self.text_answer,
             'file_path': self.file_path,
-            'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None
+            'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None,
+            'file_name': self.file_name,
+            'file_mime': self.file_mime
         }
 
 # --- MIGRATION INSTRUCTIONS ---
@@ -996,16 +1030,20 @@ def submit_assignment(assignment_id):
         return jsonify({'message': 'Access denied'}), 403
     text_answer = request.form.get('text_answer')
     file = request.files.get('file')
-    file_path = None
+    file_data = None
+    file_name = None
+    file_mime = None
     if file:
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
+        file_data = file.read()
+        file_name = file.filename
+        file_mime = file.mimetype
     submission = AssignmentSubmission(
         assignment_id=assignment_id,
         user_id=user.id,
         text_answer=text_answer,
-        file_path=filename if file else None
+        file_data=file_data,
+        file_name=file_name,
+        file_mime=file_mime
     )
     db.session.add(submission)
     db.session.commit()
@@ -1037,6 +1075,30 @@ def get_my_submission(assignment_id):
         return jsonify({})
     return jsonify(submission.to_dict())
 
+@app.route('/api/assignments/<int:assignment_id>/my-submission', methods=['PUT'])
+def edit_my_submission(assignment_id):
+    user = get_current_user()
+    if not user or user.role != 'student':
+        return jsonify({'message': 'Only students can edit their submission'}), 403
+    submission = AssignmentSubmission.query.filter_by(assignment_id=assignment_id, user_id=user.id).first()
+    if not submission:
+        return jsonify({'message': 'Submission not found'}), 404
+    text_answer = request.form.get('text_answer')
+    file = request.files.get('file')
+    updated = False
+    if text_answer is not None:
+        submission.text_answer = text_answer
+        updated = True
+    if file:
+        submission.file_data = file.read()
+        submission.file_name = file.filename
+        submission.file_mime = file.mimetype
+        updated = True
+    if updated:
+        submission.submitted_at = datetime.utcnow()
+    db.session.commit()
+    return jsonify({'message': 'Submission updated', 'submission': submission.to_dict()}), 200
+
 @app.route('/api/assignments/<int:assignment_id>', methods=['GET', 'OPTIONS'])
 def get_assignment(assignment_id):
     if request.method == 'OPTIONS':
@@ -1059,7 +1121,6 @@ def get_assignment(assignment_id):
 @instructor_required
 def delete_assignment(assignment_id):
     assignment = Assignment.query.get_or_404(assignment_id)
-    
     # Delete the assignment file if it exists
     if assignment.file_path:
         try:
@@ -1067,13 +1128,39 @@ def delete_assignment(assignment_id):
             if os.path.exists(file_path):
                 os.remove(file_path)
         except Exception as e:
-            print(f"Error deleting assignment file: {e}")
-    
+            print(f"[WARNING] Could not delete assignment file: {e}")
+            # Continue even if file deletion fails
     # Delete the assignment (cascade will handle submissions)
     db.session.delete(assignment)
     db.session.commit()
-    
     return jsonify({'message': 'Assignment deleted successfully'}), 200
+
+@app.route('/api/assignments/<int:assignment_id>/submissions/<int:submission_id>/download', methods=['GET'])
+def download_submission_file(assignment_id, submission_id):
+    submission = AssignmentSubmission.query.filter_by(id=submission_id, assignment_id=assignment_id).first()
+    if not submission or not submission.file_data:
+        return jsonify({'message': 'File not found'}), 404
+    return send_file(
+        io.BytesIO(submission.file_data),
+        as_attachment=True,
+        download_name=submission.file_name or 'submission_file',
+        mimetype=submission.file_mime or 'application/octet-stream'
+    )
+
+@app.route('/course_files/<filename>')
+def serve_course_file(filename):
+    course_files_dir = os.path.join(os.path.dirname(__file__), '..', 'course-recommendations', 'course_files')
+    return send_from_directory(course_files_dir, filename, as_attachment=True)
+
+@app.route('/api/assignments/<int:assignment_id>/submissions/<int:submission_id>', methods=['DELETE'])
+@instructor_required
+def delete_submission(assignment_id, submission_id):
+    submission = AssignmentSubmission.query.filter_by(id=submission_id, assignment_id=assignment_id).first()
+    if not submission:
+        return jsonify({'message': 'Submission not found'}), 404
+    db.session.delete(submission)
+    db.session.commit()
+    return jsonify({'message': 'Submission deleted successfully'}), 200
 
 if __name__ == "__main__":
     app.run(port=5001, debug=True) 

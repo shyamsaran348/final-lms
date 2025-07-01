@@ -189,6 +189,15 @@
                         </button>
                     </div>
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1" for="confirmPassword">Confirm Password</label>
+                    <div class="relative">
+                        <input class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" id="confirmPassword" name="confirmPassword" placeholder="Re-enter your password" type="password" required />
+                        <button type="button" id="toggleConfirmPassword" tabindex="-1" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 focus:outline-none" aria-label="Show confirm password">
+                            <span class="material-icons" id="toggleConfirmPasswordIcon">lock_open</span>
+                        </button>
+                    </div>
+                </div>
                 <button class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shadow-md transition duration-150" type="submit">REGISTER</button>
                 <p class="register-message" id="registerMessage"></p>
             </form>
@@ -205,16 +214,46 @@
 </div>
 <script src="js/register.js"></script>
 <script>
-document.getElementById('togglePassword').addEventListener('click', function() {
-  const pwd = document.getElementById('password');
-  const icon = document.getElementById('togglePasswordIcon');
-  if (pwd.type === 'password') {
-    pwd.type = 'text';
-    icon.textContent = 'lock';
-  } else {
-    pwd.type = 'password';
-    icon.textContent = 'lock_open';
-  }
+// Password show/hide toggle
+const passwordInput = document.getElementById('password');
+const togglePassword = document.getElementById('togglePassword');
+const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+const confirmPasswordInput = document.getElementById('confirmPassword');
+const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+const toggleConfirmPasswordIcon = document.getElementById('toggleConfirmPasswordIcon');
+
+togglePassword.addEventListener('click', function() {
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        togglePasswordIcon.textContent = 'lock';
+    } else {
+        passwordInput.type = 'password';
+        togglePasswordIcon.textContent = 'lock_open';
+    }
+});
+
+toggleConfirmPassword.addEventListener('click', function() {
+    if (confirmPasswordInput.type === 'password') {
+        confirmPasswordInput.type = 'text';
+        toggleConfirmPasswordIcon.textContent = 'lock';
+    } else {
+        confirmPasswordInput.type = 'password';
+        toggleConfirmPasswordIcon.textContent = 'lock_open';
+    }
+});
+
+// Client-side password match validation
+const registerForm = document.getElementById('registerForm');
+const registerMessage = document.getElementById('registerMessage');
+registerForm.addEventListener('submit', function(e) {
+    if (passwordInput.value !== confirmPasswordInput.value) {
+        e.preventDefault();
+        registerMessage.textContent = 'Passwords do not match!';
+        registerMessage.style.color = 'red';
+        confirmPasswordInput.focus();
+    } else {
+        registerMessage.textContent = '';
+    }
 });
 </script>
 </body>

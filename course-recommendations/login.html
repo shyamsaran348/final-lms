@@ -329,6 +329,17 @@
                   </button>
                 </div>
               </div>
+              <div class="form-element form-stack">
+                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                <div style="position:relative;display:flex;align-items:center;">
+                  <input id="confirmPassword" type="password" name="confirmPassword" required style="flex:1;">
+                  <button type="button" id="toggleConfirmRegisterPassword" aria-label="Show/Hide confirm password" style="background:none;border:none;position:absolute;right:0;top:50%;transform:translateY(-50%);cursor:pointer;padding:0 8px;">
+                    <span id="confirmRegisterEyeIcon">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#03A9F4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
               <div class="form-element form-submit">
                 <button id="signUp" class="signup" type="submit" name="signup">Sign up</button>
                 <button id="goLeft" class="signup off" type="button">Log In</button> 
@@ -354,21 +365,21 @@
                     <span id="loginEyeIcon">
                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#673AB7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
                     </span>
-                  </button>
-                </div>
-              </div>
-              <a href="#" style="display:block;margin:0.5em 0 1.2em 0;text-align:right;font-size:0.98em;color:#673AB7;text-decoration:none;opacity:0.85;">Forgot password?</a>
+            </button>
+            </div>
+        </div>
+              <a href="/course-recommendations/index.html#about" class="nav-link">About</a>
               <div class="form-element form-submit">
                 <button id="logIn" class="login" type="submit" name="login">Log In</button>
                 <button id="goRight" class="login off" type="button" name="signup">Sign Up</button>
               </div>
-              <p class="login-message" id="loginMessage"></p>
-            </form>
-          </div>
+        <p class="login-message" id="loginMessage"></p>
+      </form>
+  </div>
         </div>
-      </div>
     </div>
-    <script>
+</div>
+<script>
       function setPanelClass(panel) {
         document.body.classList.remove('signup-active', 'login-active');
         document.body.classList.add(panel === 'signup' ? 'signup-active' : 'login-active');
@@ -482,19 +493,42 @@
       const eyeOffSVG = (color) => `<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='${color}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M17.94 17.94A10.06 10.06 0 0 1 12 19c-7 0-11-7-11-7a18.4 18.4 0 0 1 5.06-5.94M1 1l22 22'/><path d='M9.53 9.53A3 3 0 0 0 12 15a3 3 0 0 0 2.47-5.47'/></svg>`;
       // Register password toggle
       const regPwd = document.getElementById('password');
-      const regToggle = document.getElementById('toggleRegisterPassword');
-      const regEyeIcon = document.getElementById('registerEyeIcon');
-      if (regPwd && regToggle && regEyeIcon) {
-        regToggle.addEventListener('click', function() {
-          if (regPwd.type === 'password') {
-            regPwd.type = 'text';
-            regEyeIcon.innerHTML = eyeOffSVG('#0288D1');
-          } else {
-            regPwd.type = 'password';
-            regEyeIcon.innerHTML = eyeSVG('#03A9F4');
-          }
-        });
-      }
+      const regPwdToggle = document.getElementById('toggleRegisterPassword');
+      const regPwdIcon = document.getElementById('registerEyeIcon');
+      const regConfirmPwd = document.getElementById('confirmPassword');
+      const regConfirmPwdToggle = document.getElementById('toggleConfirmRegisterPassword');
+      const regConfirmPwdIcon = document.getElementById('confirmRegisterEyeIcon');
+      regPwdToggle.addEventListener('click', function() {
+        if (regPwd.type === 'password') {
+          regPwd.type = 'text';
+          regPwdIcon.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#03A9F4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+        } else {
+          regPwd.type = 'password';
+          regPwdIcon.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#03A9F4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+        }
+      });
+      regConfirmPwdToggle.addEventListener('click', function() {
+        if (regConfirmPwd.type === 'password') {
+          regConfirmPwd.type = 'text';
+          regConfirmPwdIcon.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#03A9F4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+        } else {
+          regConfirmPwd.type = 'password';
+          regConfirmPwdIcon.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#03A9F4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+        }
+      });
+      // Client-side password match validation
+      const registerForm = document.getElementById('registerForm');
+      const registerMessage = document.getElementById('registerMessage');
+      registerForm.addEventListener('submit', function(e) {
+        if (regPwd.value !== regConfirmPwd.value) {
+          e.preventDefault();
+          registerMessage.textContent = 'Passwords do not match!';
+          registerMessage.style.color = 'red';
+          regConfirmPwd.focus();
+        } else {
+          registerMessage.textContent = '';
+        }
+      });
       // Login password toggle
       const loginPwd = document.getElementById('login-password');
       const loginToggle = document.getElementById('toggleLoginPassword');
@@ -504,13 +538,13 @@
           if (loginPwd.type === 'password') {
             loginPwd.type = 'text';
             loginEyeIcon.innerHTML = eyeOffSVG('#512DA8');
-          } else {
+  } else {
             loginPwd.type = 'password';
             loginEyeIcon.innerHTML = eyeSVG('#673AB7');
-          }
-        });
+  }
+});
       }
-    </script>
+</script>
     <script src="js/login.js"></script>
     <script src="js/register.js"></script>
 </body>
