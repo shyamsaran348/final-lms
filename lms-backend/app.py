@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, send_from_directory, render_template,
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
-from config import Config
+from config import Config, IMAGEKIT_PRIVATE_KEY, IMAGEKIT_URL_ENDPOINT, IMAGEKIT_UPLOAD_URL
 from functools import wraps
 import os
 from werkzeug.utils import secure_filename
@@ -12,6 +12,11 @@ from flask_limiter.util import get_remote_address
 import re
 from sqlalchemy import and_
 import io
+import requests
+import base64
+import hmac
+import hashlib
+import time
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -486,6 +491,29 @@ def instructor_required(f):
         return f(*args, **kwargs)
     return decorated
 
+def upload_to_imagekit(file_storage):
+    response = requests.post(
+        IMAGEKIT_UPLOAD_URL,
+        files={"file": (file_storage.filename, file_storage.stream, file_storage.mimetype)},
+        data={"fileName": file_storage.filename},
+        auth=(IMAGEKIT_PRIVATE_KEY, "")
+    )
+    if response.ok:
+        result = response.json()
+        # Store the filePath (ImageKit path) in the DB, not the full URL or local path
+        return result['filePath'], result.get('name'), result.get('fileType')
+    else:
+        raise Exception(f"ImageKit upload failed: {response.text}")
+
+def generate_signed_url(file_path, expiry_seconds=300):
+    expire = int(time.time()) + expiry_seconds
+    to_sign = f"{file_path}:{expire}"
+    signature = base64.urlsafe_b64encode(
+        hmac.new(IMAGEKIT_PRIVATE_KEY.encode(), to_sign.encode(), hashlib.sha1).digest()
+    ).decode().rstrip("=")
+    signed_url = f"{IMAGEKIT_URL_ENDPOINT}{file_path}?ik-t={expire}&ik-s={signature}"
+    return signed_url
+
 @app.route('/api/courses/<int:course_id>/files', methods=['POST'])
 @instructor_required
 def upload_course_file(course_id):
@@ -494,11 +522,12 @@ def upload_course_file(course_id):
     file = request.files['file']
     if file.filename == '':
         return jsonify({'message': 'No selected file'}), 400
-    filename = secure_filename(file.filename)
-    save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    file.save(save_path)
     user = get_current_user()
-    course_file = CourseFile(course_id=course_id, filename=filename, filepath=save_path, uploaded_by=user.email)
+    try:
+        file_path, _, _ = upload_to_imagekit(file)
+    except Exception as e:
+        return jsonify({'message': str(e)}), 500
+    course_file = CourseFile(course_id=course_id, filename=file.filename, filepath=file_path, uploaded_by=user.email)
     db.session.add(course_file)
     db.session.commit()
     return jsonify({'message': 'File uploaded', 'file': course_file.to_dict()}), 201
@@ -529,7 +558,6 @@ def download_course_file(file_id):
     course_file = CourseFile.query.get(file_id)
     if not course_file:
         return jsonify({'message': 'File not found'}), 404
-    print('Serving file:', course_file.filepath)  # Debug print
     # Check access for course or module file
     course_id = course_file.course_id
     module_id = course_file.module_id
@@ -547,7 +575,8 @@ def download_course_file(file_id):
             assigned = StudentCourse.query.filter_by(user_id=user.id, course_id=course_id).first()
             if not assigned:
                 return jsonify({'message': 'Access denied'}), 403
-    return send_file(course_file.filepath, as_attachment=True, download_name=course_file.filename)
+    signed_url = generate_signed_url(course_file.filepath)
+    return jsonify({'url': signed_url, 'filename': course_file.filename})
 
 @app.route('/api/files/<int:file_id>', methods=['DELETE'])
 @instructor_required
@@ -800,14 +829,15 @@ def upload_module_file(module_id):
     file = request.files['file']
     if file.filename == '':
         return jsonify({'message': 'No selected file'}), 400
-    filename = secure_filename(file.filename)
-    save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    file.save(save_path)
     user = get_current_user()
     module = Module.query.get(module_id)
     if not module:
         return jsonify({'message': 'Module not found'}), 404
-    course_file = CourseFile(course_id=module.course_id, module_id=module_id, filename=filename, filepath=save_path, uploaded_by=user.email)
+    try:
+        file_path, _, _ = upload_to_imagekit(file)
+    except Exception as e:
+        return jsonify({'message': str(e)}), 500
+    course_file = CourseFile(course_id=module.course_id, module_id=module_id, filename=file.filename, filepath=file_path, uploaded_by=user.email)
     db.session.add(course_file)
     db.session.commit()
     return jsonify({'message': 'File uploaded', 'file': course_file.to_dict()}), 201
@@ -984,15 +1014,16 @@ def create_assignment():
     if not title or not course_id:
         return jsonify({'message': 'Missing title or course_id'}), 400
     if file:
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
+        try:
+            file_path, _, _ = upload_to_imagekit(file)
+        except Exception as e:
+            return jsonify({'message': str(e)}), 500
     assignment = Assignment(
         title=title,
         description=description,
         due_date=datetime.strptime(due_date, '%Y-%m-%dT%H:%M') if due_date else None,
         course_id=course_id,
-        file_path=filename if file else None
+        file_path=file_path
     )
     db.session.add(assignment)
     db.session.commit()
@@ -1024,24 +1055,24 @@ def submit_assignment(assignment_id):
     if not user or user.role != 'student':
         return jsonify({'message': 'Only students can submit assignments'}), 403
     assignment = Assignment.query.get_or_404(assignment_id)
-    # Check if student is enrolled in the course
     assigned = StudentCourse.query.filter_by(user_id=user.id, course_id=assignment.course_id).first()
     if not assigned:
         return jsonify({'message': 'Access denied'}), 403
     text_answer = request.form.get('text_answer')
     file = request.files.get('file')
-    file_data = None
+    file_path = None
     file_name = None
     file_mime = None
     if file:
-        file_data = file.read()
-        file_name = file.filename
-        file_mime = file.mimetype
+        try:
+            file_path, file_name, file_mime = upload_to_imagekit(file)
+        except Exception as e:
+            return jsonify({'message': str(e)}), 500
     submission = AssignmentSubmission(
         assignment_id=assignment_id,
         user_id=user.id,
         text_answer=text_answer,
-        file_data=file_data,
+        file_path=file_path,
         file_name=file_name,
         file_mime=file_mime
     )
@@ -1090,10 +1121,14 @@ def edit_my_submission(assignment_id):
         submission.text_answer = text_answer
         updated = True
     if file:
-        submission.file_data = file.read()
-        submission.file_name = file.filename
-        submission.file_mime = file.mimetype
-        updated = True
+        try:
+            file_path, file_name, file_mime = upload_to_imagekit(file)
+            submission.file_path = file_path
+            submission.file_name = file_name
+            submission.file_mime = file_mime
+            updated = True
+        except Exception as e:
+            return jsonify({'message': str(e)}), 500
     if updated:
         submission.submitted_at = datetime.utcnow()
     db.session.commit()
@@ -1138,14 +1173,10 @@ def delete_assignment(assignment_id):
 @app.route('/api/assignments/<int:assignment_id>/submissions/<int:submission_id>/download', methods=['GET'])
 def download_submission_file(assignment_id, submission_id):
     submission = AssignmentSubmission.query.filter_by(id=submission_id, assignment_id=assignment_id).first()
-    if not submission or not submission.file_data:
+    if not submission or not submission.file_path:
         return jsonify({'message': 'File not found'}), 404
-    return send_file(
-        io.BytesIO(submission.file_data),
-        as_attachment=True,
-        download_name=submission.file_name or 'submission_file',
-        mimetype=submission.file_mime or 'application/octet-stream'
-    )
+    signed_url = generate_signed_url(submission.file_path)
+    return jsonify({'url': signed_url, 'filename': submission.file_name})
 
 @app.route('/course_files/<filename>')
 def serve_course_file(filename):
@@ -1161,6 +1192,36 @@ def delete_submission(assignment_id, submission_id):
     db.session.delete(submission)
     db.session.commit()
     return jsonify({'message': 'Submission deleted successfully'}), 200
+
+# --- Migration utility: Upload all files in course_files/ to ImageKit and update DB ---
+def migrate_local_files_to_imagekit():
+    from config import IMAGEKIT_PRIVATE_KEY, IMAGEKIT_URL_ENDPOINT, IMAGEKIT_UPLOAD_URL
+    import glob
+    import sys
+    print('Starting migration of local files to ImageKit...')
+    with app.app_context():
+        # Migrate CourseFile
+        course_files_dir = os.path.join(os.path.dirname(__file__), '..', 'course-recommendations', 'course_files')
+        for cf in CourseFile.query.filter(CourseFile.filepath.like('%course_files/%')).all():
+            local_path = os.path.join(os.path.dirname(__file__), '..', cf.filepath)
+            if not os.path.exists(local_path):
+                print(f'Skipping missing file: {local_path}')
+                continue
+            with open(local_path, 'rb') as f:
+                class DummyFile:
+                    def __init__(self, filename, stream, mimetype):
+                        self.filename = filename
+                        self.stream = stream
+                        self.mimetype = mimetype
+                file_storage = DummyFile(os.path.basename(local_path), f, 'application/octet-stream')
+                try:
+                    imagekit_path, _, _ = upload_to_imagekit(file_storage)
+                    cf.filepath = imagekit_path  # Store only the ImageKit path
+                    print(f'Uploaded and updated: {local_path} -> {imagekit_path}')
+                except Exception as e:
+                    print(f'Failed to upload {local_path}: {e}')
+        db.session.commit()
+        print('Migration complete.')
 
 if __name__ == "__main__":
     app.run(port=5001, debug=True) 

@@ -90,16 +90,8 @@ function setupModuleManagement(modules) {
     const role = localStorage.getItem('role');
     if (role !== 'admin' && role !== 'instructor') return;
     setTimeout(() => {
-        document.querySelectorAll('.sidebar-module').forEach(el => {
-            const modId = el.getAttribute('data-module-id');
-            if (!el.querySelector('.module-actions')) {
-                const actions = document.createElement('span');
-                actions.className = 'module-actions';
-                actions.innerHTML = `<button class='icon-btn delete-module-btn' data-id='${modId}' title='Delete Module' aria-label='Delete module ${modId}'><i class="fa-solid fa-trash"></i></button>`;
-                el.appendChild(actions);
-            }
-        });
-        // Remove edit button event handler setup
+        // Remove the code that appends a delete button to each module
+        // Only attach the delete event handler to existing delete buttons
         document.querySelectorAll('.delete-module-btn').forEach(btn => {
             btn.onclick = e => {
                 e.stopPropagation();
@@ -196,14 +188,16 @@ function deleteModule(id) {
     .then(res => res.json())
     .then(data => {
         if (data.message === 'Module deleted') {
-            // Reload modules
+            // Reload modules and update global state
             fetch(`${API_URL}/courses/${courseId}`, {
                 headers: { 'X-User-Email': localStorage.getItem('email') || '' }
             })
             .then(res => res.json())
             .then(course => {
-                loadModules(course.modules);
-                setupModuleManagement(course.modules);
+                window._modules = course.modules;
+                renderSidebarWithAssignments(window._modules, window._assignments, null, null);
+                renderMainContent(window._modules, null, null);
+                setupModuleManagement(window._modules);
             });
         } else {
             alert(data.message || 'Failed to delete module');
@@ -250,10 +244,7 @@ function renderSidebar(modules, selectedModuleId, selectedLessonId) {
               ${module.title}
       </div>
             ${(userRole === 'admin' || userRole === 'instructor') ? `
-              <button class="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-700 delete-module-btn" data-id="${module.id}">
-                <span class="material-icons text-lg">delete_outline</span>
-              </button>
-            ` : ''}
+              <button class="text-red-500 transition-opacity hover:text-red-700 delete-module-btn" data-id='${modId}' title='Delete Module' aria-label='Delete module ${modId}'><i class="fa-solid fa-trash"></i></button>` : ''}
           </a>
         `;
       }).join('')}
@@ -291,24 +282,34 @@ function renderSidebarWithAssignments(modules, assignments, selectedModuleId, se
     window._sidebarState.selectedAssignmentId = selectedAssignmentId;
     const sidebarList = document.getElementById('sidebar-modules-list');
     if (!sidebarList) return;
-    const role = localStorage.getItem('role');
+    // Ensure role is always set
+    let role = localStorage.getItem('role');
+    if (!role) {
+        role = 'admin'; // fallback for testing
+        localStorage.setItem('role', role);
+    }
     let html = '';
     html += `<div class="sidebar-card" style="background: #f8fafc; border-radius: 16px; box-shadow: 0 2px 8px rgba(44,62,80,0.07); padding: 1.5rem 1.25rem 1.25rem 1.25rem; margin-bottom: 2rem;">
       <h2 style="font-size: 1.15rem; font-weight: 700; color: #374151; margin-bottom: 1.25rem;">Modules & Assignments</h2>
       <div class="sidebar-section" style="margin-bottom: 1.5rem;">
         <h3 style="font-size: 0.95rem; font-weight: 600; color: #6b7280; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Modules</h3>`;
     if (modules && modules.length > 0) {
-        modules.forEach(module => {
+        const sortedModules = [...modules].sort((a, b) => a.id - b.id);
+        sortedModules.forEach(module => {
+            console.log('Rendering module:', module.title, 'Role:', role); // Debug log
             const isSelected = selectedModuleId === module.id;
             const hasLessons = module.lessons && module.lessons.length > 0;
-            html += `<div class="sidebar-module${isSelected ? ' selected' : ''}" data-module-id="${module.id}" style="margin-bottom: 0.5rem;">`;
-            html += `<div class="module-header${isSelected ? ' selected' : ''}" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; background: ${isSelected ? 'linear-gradient(135deg, #6366f1 0%, #60a5fa 100%)' : '#fff'}; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; border: 1px solid ${isSelected ? 'rgba(99,102,241,0.2)' : '#e5e7eb'};">`;
-            html += `<div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-book" style="color: ${isSelected ? 'white' : '#6366f1'}; font-size: 0.875rem;"></i>
-                        <span style="font-weight: 600; color: ${isSelected ? 'white' : '#374151'}; font-size: 0.875rem;">${module.title}</span>
-                    </div>`;
-            html += hasLessons ? `<i class="fas fa-chevron-down" style="color: ${isSelected ? 'white' : '#6b7280'}; font-size: 0.75rem; transition: transform 0.2s ease;"></i>` : '';
-            html += `</div>`;
+            html += `<div class="sidebar-module${isSelected ? ' selected' : ''}" data-module-id="${module.id}" style="margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
+                <div class="module-header${isSelected ? ' selected' : ''}" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-book" style="color: ${isSelected ? 'white' : '#6366f1'}; font-size: 0.875rem;"></i>
+                    <span style="font-weight: 600; color: ${isSelected ? 'white' : '#374151'}; font-size: 0.875rem;">${module.title}</span>
+                </div>
+                ${(role === 'admin' || role === 'instructor') ? `
+                    <button class="text-red-500 transition-opacity hover:text-red-700 delete-module-btn" data-id="${module.id}">
+                        <span class="material-icons">delete_outline</span>
+                    </button>
+                ` : ''}
+            </div>`;
             if (hasLessons) {
                 html += `<div class="module-lessons" id="module-lessons-${module.id}" style="display: ${isSelected ? 'block' : 'none'}; margin-left: 1rem; margin-top: 0.5rem;">`;
                 module.lessons.forEach(lesson => {
@@ -322,7 +323,6 @@ function renderSidebarWithAssignments(modules, assignments, selectedModuleId, se
                 });
                 html += '</div>';
             }
-            html += '</div>';
         });
     } else {
         html += '<div style="color: #9ca3af; font-size: 0.95rem;">No modules yet.</div>';
@@ -356,16 +356,27 @@ function renderSidebarWithAssignments(modules, assignments, selectedModuleId, se
     }
     html += '</div></div>';
     sidebarList.innerHTML = html;
+    // Re-attach delete button event listeners after every render
+    sidebarList.querySelectorAll('.delete-module-btn').forEach(btn => {
+      btn.onclick = function(e) {
+        e.stopPropagation();
+        if (confirm('Delete this module?')) {
+          deleteModule(btn.getAttribute('data-id'));
+        }
+      };
+    });
     // Restore event delegation for sidebar clicks
     sidebarList.onclick = function(e) {
         // Module click
         const moduleHeader = e.target.closest('.module-header');
         if (moduleHeader) {
-            window._sidebarState.selectedModuleId = parseInt(moduleHeader.parentElement.getAttribute('data-module-id'));
+            const modId = parseInt(moduleHeader.parentElement.getAttribute('data-module-id'));
+            console.log('[DEBUG] Module clicked:', modId);
+            window._sidebarState.selectedModuleId = modId;
             window._sidebarState.selectedLessonId = null;
             window._sidebarState.selectedAssignmentId = null;
-            renderSidebarWithAssignments(window._modules, window._assignments, window._sidebarState.selectedModuleId, null, null);
-            renderMainContent(window._modules, window._sidebarState.selectedModuleId, null);
+            renderSidebarWithAssignments(window._modules, window._assignments, modId, null, null);
+            renderMainContent(window._modules, modId, null);
             return;
         }
         // Lesson click
@@ -382,11 +393,12 @@ function renderSidebarWithAssignments(modules, assignments, selectedModuleId, se
         // Assignment click
         const assignmentHeader = e.target.closest('.assignment-header');
         if (assignmentHeader) {
+            const assignmentId = parseInt(assignmentHeader.parentElement.getAttribute('data-assignment-id'));
             window._sidebarState.selectedModuleId = null;
             window._sidebarState.selectedLessonId = null;
-            window._sidebarState.selectedAssignmentId = parseInt(assignmentHeader.parentElement.getAttribute('data-assignment-id'));
-            renderSidebarWithAssignments(window._modules, window._assignments, null, null, window._sidebarState.selectedAssignmentId);
-            showAssignmentDetails(window._sidebarState.selectedAssignmentId);
+            window._sidebarState.selectedAssignmentId = assignmentId;
+            renderSidebarWithAssignments(window._modules, window._assignments, null, null, assignmentId);
+            showAssignmentDetails(assignmentId);
             return;
         }
     };
@@ -557,6 +569,7 @@ function renderMainContent(modules, selectedModuleId, selectedLessonId) {
       const email = localStorage.getItem('email');
       const role = localStorage.getItem('role');
       try {
+        // Get signed URL from backend
         const res = await fetch(`${API_URL}/files/${fileId}`, {
           headers: {
             'X-User-Email': email || '',
@@ -568,17 +581,18 @@ function renderMainContent(modules, selectedModuleId, selectedLessonId) {
           alert('Download failed: ' + errText);
           return;
         }
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
+        const { url, filename: fname } = await res.json();
+        // Fetch the file as a blob for cross-browser compatibility
+        const fileRes = await fetch(url);
+        if (!fileRes.ok) throw new Error('Failed to fetch file from CDN');
+        const blob = await fileRes.blob();
         const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
+        a.href = URL.createObjectURL(blob);
+        a.download = fname || filename || 'file';
         document.body.appendChild(a);
         a.click();
-        setTimeout(() => {
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
-        }, 100);
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
       } catch (err) {
         alert('Download failed: ' + err);
       }
@@ -639,15 +653,25 @@ function renderMainContent(modules, selectedModuleId, selectedLessonId) {
         .then(data => {
           if (data.file) {
             statusSpan.textContent = 'Uploaded!';
-                    fileInput.value = '';
-          const fileNameSpan = form.querySelector('.file-drop-filename');
-                    if (fileNameSpan) fileNameSpan.textContent = '';
-          fetchAllModuleFiles(window._modules, renderMainContent, moduleId, null);
-                } else {
-                    statusSpan.textContent = data.message || 'Upload failed';
-                }
+            fileInput.value = '';
+            const fileNameSpan = form.querySelector('.file-drop-filename');
+            if (fileNameSpan) fileNameSpan.textContent = '';
+            // Re-fetch modules and update sidebar and main content
+            fetch(`${API_URL}/courses/${courseId}`, {
+                headers: { 'X-User-Email': localStorage.getItem('email') || '' }
             })
-            .catch(() => {
+            .then(res => res.json())
+            .then(course => {
+                window._modules = course.modules;
+                fetchAllModuleFiles(window._modules, renderMainContent, moduleId, null);
+                renderSidebarWithAssignments(window._modules, window._assignments, moduleId, null);
+                setupModuleManagement(window._modules);
+            });
+          } else {
+            statusSpan.textContent = data.message || 'Upload failed';
+          }
+        })
+        .catch(() => {
                 statusSpan.textContent = 'Upload failed';
             });
         };
@@ -692,10 +716,12 @@ function renderMainContent(modules, selectedModuleId, selectedLessonId) {
       renderMainContent(window._modules, currentlyExpanded ? null : modId, null);
       if (window._assignments && window._assignments.length > 0) {
         renderSidebarWithAssignments(window._modules, window._assignments, currentlyExpanded ? null : modId, null);
+        setupModuleManagement(window._modules);
       } else {
         loadAssignments().then(assignments => {
           window._assignments = assignments;
           renderSidebarWithAssignments(window._modules, assignments, currentlyExpanded ? null : modId, null);
+          setupModuleManagement(window._modules);
         });
       }
     };
@@ -708,8 +734,9 @@ async function loadModules(modules) {
   const assignments = await loadAssignments();
   window._assignments = assignments;
   console.log('[DEBUG] Loaded assignments:', assignments);
-  renderSidebarWithAssignments(modules, assignments, null, null);
-  fetchAllModuleFiles(modules, renderMainContent, null, null);
+  renderSidebarWithAssignments(window._modules, window._assignments, null, null);
+  setupModuleManagement(window._modules);
+  fetchAllModuleFiles(window._modules, renderMainContent, null, null);
 }
 
 // --- Helper to always update filename on file input change ---
@@ -1358,3 +1385,40 @@ function showAssignmentDetails(assignmentId) {
 // Make functions globally available
 window.showAssignmentSubmissionModal = showAssignmentSubmissionModal;
 window.showAssignmentDetails = showAssignmentDetails; 
+
+// Helper to download assignment file using signed URL
+async function downloadAssignmentFile(assignmentId) {
+    try {
+        const res = await fetch(`${API_URL}/assignments/${assignmentId}`, {
+            headers: {
+                'X-User-Email': localStorage.getItem('email') || '',
+                'X-User-Role': localStorage.getItem('role') || ''
+            }
+        });
+        if (!res.ok) throw new Error('Failed to get assignment');
+        const assignment = await res.json();
+        if (!assignment.file_path) throw new Error('No file');
+        // Get signed URL from backend
+        const fileRes = await fetch(`${API_URL}/files/${assignment.id}`, {
+            headers: {
+                'X-User-Email': localStorage.getItem('email') || '',
+                'X-User-Role': localStorage.getItem('role') || ''
+            }
+        });
+        if (!fileRes.ok) throw new Error('Failed to get download URL');
+        const { url, filename } = await fileRes.json();
+        // Fetch the file as a blob for cross-browser compatibility
+        const cdnRes = await fetch(url);
+        if (!cdnRes.ok) throw new Error('Failed to fetch file from CDN');
+        const blob = await cdnRes.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename || 'file';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+    } catch (err) {
+        showToast('Failed to download assignment file', 'error');
+    }
+}

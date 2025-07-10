@@ -51,8 +51,7 @@ function renderAssignmentDetails(assignment) {
             ${downloadLink}
             ${deleteButton}
         </div>
-        <div style="font-size: 1.3rem; font-weight: 700; color: #3730a3; margin-bottom: 0.7rem; margin-top: 2.5rem;">Student Submissions</div>
-        <div id="submissionsTableContainer"></div>
+        <div id="submissionsTableContainer" style="margin-bottom: 2rem;"></div>
     `;
 }
 
@@ -62,8 +61,8 @@ function renderSubmissionsTable(submissions, assignment) {
     if (!submissions.length) {
         container.innerHTML = `
             <div class="flex justify-center items-center min-h-[180px] w-full">
-                <div class="bg-white rounded-2xl shadow-2xl p-10 min-w-[340px] text-center mx-auto">
-                    <div class="text-lg text-slate-400">No submissions yet.</div>
+                <div class="bg-white rounded-2xl shadow-2xl p-10 min-w-[340px] text-center mx-auto" style="margin-top: 1.5rem; margin-bottom: 2rem;">
+                    <div class="text-lg text-slate-400 font-semibold">No submissions yet.</div>
                 </div>
             </div>`;
         return;
@@ -74,15 +73,14 @@ function renderSubmissionsTable(submissions, assignment) {
     function render() {
         container.innerHTML = `
             <div class="flex justify-center w-full">
-                <div class="bg-white rounded-2xl shadow-2xl px-10 py-12 max-w-4xl w-full flex flex-col items-center mx-auto">
+                <div class="bg-white rounded-2xl shadow-2xl px-10 py-12 max-w-4xl w-full flex flex-col items-center mx-auto" style="margin-top: 1.5rem; margin-bottom: 2rem;">
                     <div class="flex flex-col md:flex-row md:justify-between md:items-center w-full mb-8 gap-4">
-                        <div class="text-2xl font-bold text-indigo-900 text-center md:text-left w-full md:w-auto">Student Submissions</div>
                         <div class="relative w-full md:w-auto flex justify-center md:justify-end">
                             <input id="submissionSearch" type="search" placeholder="Search submissions..." class="pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-base w-full md:w-72 bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition" />
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-400 text-lg"><i class="fas fa-search"></i></span>
                         </div>
                     </div>
-                    <div class="overflow-x-auto w-full">
+                    <div class="overflow-x-auto w-full" style="margin-bottom: 1.5rem;">
                         <table class="w-full text-base bg-white rounded-xl">
                             <thead class="sticky top-0 z-10">
                                 <tr class="bg-indigo-100">
@@ -137,7 +135,7 @@ function renderSubmissionsTable(submissions, assignment) {
                     </td>
                     <td class="py-3 px-3 text-slate-700">${sub.text_answer ? sub.text_answer.replace(/</g, '&lt;') : '<span class=\"text-slate-400\">None</span>'}</td>
                     <td class="py-3 px-3">
-                        ${(sub.file_name && sub.id) ? `<a href="${API_URL}/assignments/${assignment.id}/submissions/${sub.id}/download" download title="Download" class="text-blue-600 font-semibold hover:underline mr-3"><i class=\"fas fa-download\"></i> Download</a>` : '<span class=\"text-slate-400\">No file</span>'}
+                        ${(sub.file_name && sub.id) ? `<a href="#" onclick="downloadSubmissionFile(${assignment.id},${sub.id}); return false;" title="Download" class="text-blue-600 font-semibold hover:underline mr-3"><i class=\"fas fa-download\"></i> Download</a>` : '<span class=\"text-slate-400\">No file</span>'}
                         ${(role === 'admin' || role === 'instructor') ? `<button onclick=\"deleteSubmission(${sub.id},${assignment.id})\" title=\"Delete\" class=\"bg-red-500 hover:bg-red-600 text-white rounded-md px-4 py-1 font-semibold text-sm ml-2 transition\"><i class='fas fa-trash'></i> Delete</button>` : ''}
                     </td>
                 </tr>
@@ -231,4 +229,31 @@ window.deleteSubmission = function(submissionId, assignmentId) {
         }
     })
     .catch(() => showToast('Failed to delete submission', 'error'));
+}
+
+// Helper to download a file using the backend's signed URL
+async function downloadSubmissionFile(assignmentId, submissionId) {
+    try {
+        const res = await fetch(`${API_URL}/assignments/${assignmentId}/submissions/${submissionId}/download`, {
+            headers: {
+                'X-User-Email': localStorage.getItem('email') || '',
+                'X-User-Role': localStorage.getItem('role') || ''
+            }
+        });
+        if (!res.ok) throw new Error('Failed to get download URL');
+        const { url, filename } = await res.json();
+        // Fetch the file as a blob for cross-browser compatibility
+        const fileRes = await fetch(url);
+        if (!fileRes.ok) throw new Error('Failed to fetch file from CDN');
+        const blob = await fileRes.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename || 'file';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+    } catch (err) {
+        showToast('Failed to download file', 'error');
+    }
 } 
