@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Authentication Test</h1>
+    
+    <div id="status"></div>
+    
+    <button onclick="testAuth()">Test Authentication</button>
+    <button onclick="testDownload()">Test File Download</button>
+    <button onclick="clearStorage()">Clear Storage</button>
+    
+    <script>
+        const API_URL = 'http://localhost:5001/api';
+        
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function testAuth() {
+            const email = localStorage.getItem('email');
+            const role = localStorage.getItem('role');
+            
+            if (!email || !role) {
+                updateStatus('❌ Not logged in. Please log in first.', 'error');
+                return;
+            }
+            
+            updateStatus(`✅ Logged in as: ${email} (${role})`, 'success');
+            
+            // Test API call
+            fetch(`${API_URL}/courses`, {
+                headers: {
+                    'X-User-Email': email,
+                    'X-User-Role': role
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                updateStatus(`✅ API call successful. Found ${data.length} courses.`, 'success');
+            })
+            .catch(err => {
+                updateStatus(`❌ API call failed: ${err.message}`, 'error');
+            });
+        }
+        
+        function testDownload() {
+            const email = localStorage.getItem('email');
+            const role = localStorage.getItem('role');
+            
+            if (!email || !role) {
+                updateStatus('❌ Not logged in. Please log in first.', 'error');
+                return;
+            }
+            
+            // Test download with a real file ID that exists
+            const fileId = 8; // This file exists: Data_Analytics_Assignment_1.docx
+            
+            fetch(`${API_URL}/files/${fileId}`, {
+                headers: {
+                    'X-User-Email': email,
+                    'X-User-Role': role
+                }
+            })
+            .then(res => {
+                if (res.ok) {
+                    updateStatus('✅ Download request successful! File should download now.', 'success');
+                    // Trigger actual download
+                    return res.blob();
+                } else {
+                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                }
+            })
+            .then(blob => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'test-file.docx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+            })
+            .catch(err => {
+                updateStatus(`❌ Download failed: ${err.message}`, 'error');
+            });
+        }
+        
+        function clearStorage() {
+            localStorage.clear();
+            updateStatus('🗑️ Storage cleared. Please log in again.', 'info');
+        }
+        
+        // Auto-test on page load
+        window.onload = testAuth;
+    </script>
+</body>
+</html> 

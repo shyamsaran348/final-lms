@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Download Debug</h1>
+    
+    <div id="status"></div>
+    
+    <button onclick="testDirectDownload()">Test Direct Download (Old Method)</button>
+    <button onclick="testFetchDownload()">Test Fetch Download (New Method)</button>
+    <button onclick="checkAuth()">Check Authentication</button>
+    
+    <pre id="debug"></pre>
+    
+    <script>
+        const API_URL = 'http://localhost:5001/api';
+        
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function addDebug(message) {
+            const debugDiv = document.getElementById('debug');
+            debugDiv.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+        }
+        
+        function checkAuth() {
+            const email = localStorage.getItem('email');
+            const role = localStorage.getItem('role');
+            addDebug(`Email: ${email}, Role: ${role}`);
+            updateStatus(`Auth: ${email} (${role})`, email ? 'success' : 'error');
+        }
+        
+        function testDirectDownload() {
+            addDebug('Testing direct download (old method)...');
+            // This simulates the old method that was causing issues
+            window.location.href = `${API_URL}/files/5`;
+        }
+        
+        function testFetchDownload() {
+            addDebug('Testing fetch download (new method)...');
+            const email = localStorage.getItem('email');
+            const role = localStorage.getItem('role');
+            
+            if (!email || !role) {
+                updateStatus('❌ Not logged in', 'error');
+                return;
+            }
+            
+            fetch(`${API_URL}/files/5`, {
+                headers: {
+                    'X-User-Email': email,
+                    'X-User-Role': role
+                }
+            })
+            .then(res => {
+                addDebug(`Response status: ${res.status}`);
+                if (res.ok) {
+                    updateStatus('✅ Fetch download successful!', 'success');
+                    return res.blob();
+                } else {
+                    return res.json().then(data => {
+                        throw new Error(data.message || 'Download failed');
+                    });
+                }
+            })
+            .then(blob => {
+                addDebug(`Blob size: ${blob.size} bytes`);
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'test-file.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+                updateStatus('✅ File downloaded successfully!', 'success');
+            })
+            .catch(err => {
+                addDebug(`Error: ${err.message}`);
+                updateStatus(`❌ Download failed: ${err.message}`, 'error');
+            });
+        }
+        
+        // Auto-check auth on load
+        window.onload = checkAuth;
+    </script>
+</body>
+</html> 

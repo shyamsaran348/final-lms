@@ -55,19 +55,38 @@
 <body>
     <header class="main-header">
         <div class="header-container">
-            <div class="logo">
-                <a href="/" aria-label="A2000 Solutions Home">
-                    <img src="images/a2000-logo.jpeg" alt="A2000 Solutions Logo" class="company-logo">
-                </a>
-            </div>
-            <nav class="main-nav" aria-label="Main navigation">
+            <a href="index.html" class="logo-link" aria-label="A2000 Solutions Home">
+                <img src="images/a2000-logo.jpeg" alt="A2000 Solutions Logo" class="company-logo">
+            </a>
+            <nav class="main-nav" id="main-nav" aria-label="Main Navigation">
                 <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="#">Categories</a></li>
-                    <li><a href="#">My Learning</a></li>
-                    <li><a href="profile.html" class="active">Profile</a></li>
+                    <li><a href="index.html" class="nav-link">Courses</a></li>
+                    <li><a href="/course-recommendations/index.html#about" class="nav-link" id="aboutNavLink">About</a></li>
+                    <li><a href="profile.html" class="nav-link active">Profile</a></li>
+                    <li id="adminLink" style="display: none;"><a href="admin.html" class="nav-link"><i class="fas fa-shield-alt"></i> Admin Panel</a></li>
                 </ul>
             </nav>
+            <div class="search-container">
+                <form role="search" aria-label="Search courses">
+                    <input type="search" placeholder="Search courses..." aria-label="Search courses">
+                    <button type="submit" aria-label="Submit search">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+            <div class="user-profile">
+                <button id="userDropdownBtn" aria-haspopup="true" aria-expanded="false" class="user-dropdown-btn">
+                    <span id="userInfo"></span>
+                    <i class="fas fa-caret-down"></i>
+                </button>
+                <div class="user-dropdown" id="userDropdown" hidden>
+                    <a href="profile.html">Profile</a>
+                    <button id="logoutBtn" class="btn btn-logout">Logout</button>
+                </div>
+            </div>
+            <button class="hamburger" id="hamburgerBtn" aria-label="Open menu" aria-controls="main-nav" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
         </div>
     </header>
 

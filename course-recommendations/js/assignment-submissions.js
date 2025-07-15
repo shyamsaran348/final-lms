@@ -41,15 +41,17 @@ function renderAssignmentDetails(assignment) {
     const due = assignment.due_date ? new Date(assignment.due_date).toLocaleString() : 'No due date';
     const role = localStorage.getItem('role');
     const deleteButton = (role === 'admin' || role === 'instructor') ? 
-        `<button onclick="deleteAssignment(${assignment.id})" class="btn btn-danger" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 8px; padding: 0.7rem 1.5rem; font-weight: 600; font-size: 1rem; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(239,68,68,0.15); display: block; margin-top: 1.5rem;">Delete Assignment</button>` : '';
-    const downloadLink = assignment.file_path ? `<a href="/course_files/${assignment.file_path}" download style="display: inline-block; color: #6366f1; font-weight: 500; margin-top: 0.5rem;">Download Assignment File</a>` : '';
+        `<button onclick="deleteAssignment(${assignment.id})" class="btn btn-danger" style="background: #ef4444; color: white; border: none; border-radius: 8px; padding: 0.7rem 1.5rem; font-weight: 600; font-size: 1rem; margin-left: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 8px rgba(239,68,68,0.10); transition: background 0.2s;" title="Delete Assignment"><i class='fas fa-trash'></i> Delete Assignment</button>` : '';
+    const downloadLink = assignment.file_path ? `<button onclick="downloadAssignmentFile(${assignment.id})" style="display: inline-flex; align-items: center; gap: 0.5rem; color: #4f46e5; font-weight: 600; border: 1.5px solid #a5b4fc; background: #fff; border-radius: 8px; padding: 0.7rem 1.5rem; font-size: 1rem; margin-right: 1rem; text-decoration: none; box-shadow: 0 2px 8px rgba(99,102,241,0.10); transition: background 0.2s; cursor: pointer;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='#fff'" title="Download Assignment File"><i class='fas fa-download'></i> Download Assignment File</button>` : '';
     document.getElementById('assignmentDetails').innerHTML = `
-        <div style="background: #fff; border-radius: 18px; box-shadow: 0 2px 16px rgba(99,102,241,0.10); padding: 2.2rem 2rem 2rem 2rem; margin-bottom: 2.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-            <div style="font-size: 1.5rem; font-weight: 700; color: #3730a3; margin-bottom: 0.7rem;">${assignment.title || ''}</div>
-            <div style="font-size: 1.1rem; color: #22223b; margin-bottom: 0.5rem;"><b>Description:</b> ${assignment.description || ''}</div>
-            <div style="font-size: 1.1rem; color: #22223b; margin-bottom: 0.5rem;"><b>Due Date:</b> ${due}</div>
+        <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 20px; box-shadow: 0 4px 32px rgba(99,102,241,0.10); padding: 2.5rem 2.5rem 2.2rem 2.5rem; margin-bottom: 2.5rem; max-width: 950px; margin-left: auto; margin-right: auto; display: flex; flex-direction: column; gap: 1.2rem; position: relative;">
+            <div style="font-size: 2.5rem; font-weight: 900; color: #1e293b; margin-bottom: 0.5rem; letter-spacing: -1px;">${assignment.title || ''}</div>
+            <div style="font-size: 1.15rem; color: #22223b; margin-bottom: 0.2rem;"><b>Description:</b> <span style='color:#64748b;'>${assignment.description || ''}</span></div>
+            <div style="font-size: 1.15rem; color: #22223b; margin-bottom: 1.2rem;"><b>Due Date:</b> <span style='color:#64748b;'>${due}</span></div>
+            <div style="display: flex; align-items: center; gap: 1rem; position: absolute; right: 2.5rem; top: 2.5rem;">
             ${downloadLink}
             ${deleteButton}
+            </div>
         </div>
         <div id="submissionsTableContainer" style="margin-bottom: 2rem;"></div>
     `;
@@ -57,6 +59,29 @@ function renderAssignmentDetails(assignment) {
 
 function renderSubmissionsTable(submissions, assignment) {
     const container = document.getElementById('submissionsTableContainer');
+    container.innerHTML = `
+        <div style="background: #fff; border-radius: 20px; box-shadow: 0 4px 32px rgba(99,102,241,0.10); padding: 2.5rem 2.5rem 2.5rem 2.5rem; max-width: 1150px; margin-left: auto; margin-right: auto;">
+            <div style="font-size: 1.7rem; font-weight: 900; color: #1e293b; margin-bottom: 1.5rem; letter-spacing: -0.5px;">Submissions</div>
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem;">
+                <input type="text" id="searchSubmissions" placeholder="Search submissions..." style="border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 0.7rem 1.7rem; font-size: 1.1rem; width: 340px; background: #f9fafb; outline: none; box-shadow: 0 1px 4px rgba(99,102,241,0.04); transition: border 0.2s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e5e7eb'" title="Search submissions">
+            </div>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 1.05rem;">
+                    <thead>
+                        <tr style="background: #f3f4f6; color: #22223b; font-size: 1.08rem;">
+                            <th style="padding: 1.1rem 0.7rem; text-align: left; font-weight: 800;">STUDENT NAME</th>
+                            <th style="padding: 1.1rem 0.7rem; text-align: left; font-weight: 800;">EMAIL</th>
+                            <th style="padding: 1.1rem 0.7rem; text-align: left; font-weight: 800;">SUBMITTED AT</th>
+                            <th style="padding: 1.1rem 0.7rem; text-align: left; font-weight: 800;">STATUS</th>
+                            <th style="padding: 1.1rem 0.7rem; text-align: left; font-weight: 800;">TEXT ANSWER</th>
+                            <th style="padding: 1.1rem 0.7rem; text-align: left; font-weight: 800;">FILE / ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="submissionsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    `;
     document.body.classList.add('bg-gradient-to-br', 'from-indigo-50', 'to-blue-100');
     if (!submissions.length) {
         container.innerHTML = `
@@ -71,49 +96,6 @@ function renderSubmissionsTable(submissions, assignment) {
     const pageSize = 5;
     let filteredSubmissions = submissions;
     function render() {
-        container.innerHTML = `
-            <div class="flex justify-center w-full">
-                <div class="bg-white rounded-2xl shadow-2xl px-10 py-12 max-w-4xl w-full flex flex-col items-center mx-auto" style="margin-top: 1.5rem; margin-bottom: 2rem;">
-                    <div class="flex flex-col md:flex-row md:justify-between md:items-center w-full mb-8 gap-4">
-                        <div class="relative w-full md:w-auto flex justify-center md:justify-end">
-                            <input id="submissionSearch" type="search" placeholder="Search submissions..." class="pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-base w-full md:w-72 bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition" />
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-400 text-lg"><i class="fas fa-search"></i></span>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto w-full" style="margin-bottom: 1.5rem;">
-                        <table class="w-full text-base bg-white rounded-xl">
-                            <thead class="sticky top-0 z-10">
-                                <tr class="bg-indigo-100">
-                                    <th class="py-4 px-3 text-left text-slate-700 font-semibold">Student Name</th>
-                                    <th class="py-4 px-3 text-left text-slate-700 font-semibold">Email</th>
-                                    <th class="py-4 px-3 text-left text-slate-700 font-semibold">Submitted At</th>
-                                    <th class="py-4 px-3 text-left text-slate-700 font-semibold">Status</th>
-                                    <th class="py-4 px-3 text-left text-slate-700 font-semibold">Text Answer</th>
-                                    <th class="py-4 px-3 text-left text-slate-700 font-semibold">File / Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="submissionsTableBody"></tbody>
-                        </table>
-                    </div>
-                    <div id="paginationControls" class="flex justify-end items-center gap-2 mt-8 w-full"></div>
-                </div>
-            </div>
-        `;
-        renderTableRows();
-        renderPagination();
-        document.getElementById('submissionSearch').addEventListener('input', (e) => {
-            const q = e.target.value.trim().toLowerCase();
-            filteredSubmissions = submissions.filter(sub =>
-                (sub.user_name || '').toLowerCase().includes(q) ||
-                (sub.user_email || '').toLowerCase().includes(q) ||
-                (sub.text_answer || '').toLowerCase().includes(q)
-            );
-            currentPage = 1;
-            renderTableRows();
-            renderPagination();
-        });
-    }
-    function renderTableRows() {
         const tbody = document.getElementById('submissionsTableBody');
         if (!tbody) return;
         const start = (currentPage - 1) * pageSize;
@@ -165,6 +147,17 @@ function renderSubmissionsTable(submissions, assignment) {
         renderPagination();
     };
     render();
+    document.getElementById('searchSubmissions').addEventListener('input', (e) => {
+        const q = e.target.value.trim().toLowerCase();
+        filteredSubmissions = submissions.filter(sub =>
+            (sub.user_name || '').toLowerCase().includes(q) ||
+            (sub.user_email || '').toLowerCase().includes(q) ||
+            (sub.text_answer || '').toLowerCase().includes(q)
+        );
+        currentPage = 1;
+        renderTableRows();
+        renderPagination();
+    });
 }
 
 function showToast(message, type = 'success', duration = 3000) {
@@ -231,7 +224,7 @@ window.deleteSubmission = function(submissionId, assignmentId) {
     .catch(() => showToast('Failed to delete submission', 'error'));
 }
 
-// Helper to download a file using the backend's signed URL
+// Helper to download a file using the backend's direct file endpoint
 async function downloadSubmissionFile(assignmentId, submissionId) {
     try {
         const res = await fetch(`${API_URL}/assignments/${assignmentId}/submissions/${submissionId}/download`, {
@@ -240,15 +233,16 @@ async function downloadSubmissionFile(assignmentId, submissionId) {
                 'X-User-Role': localStorage.getItem('role') || ''
             }
         });
-        if (!res.ok) throw new Error('Failed to get download URL');
-        const { url, filename } = await res.json();
-        // Fetch the file as a blob for cross-browser compatibility
-        const fileRes = await fetch(url);
-        if (!fileRes.ok) throw new Error('Failed to fetch file from CDN');
-        const blob = await fileRes.blob();
+        if (!res.ok) throw new Error('Failed to download file');
+        const disposition = res.headers.get('Content-Disposition');
+        let filename = 'file';
+        if (disposition && disposition.indexOf('filename=') !== -1) {
+            filename = disposition.split('filename=')[1].replace(/['"]/g, '').trim();
+        }
+        const blob = await res.blob();
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = filename || 'file';
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -256,4 +250,48 @@ async function downloadSubmissionFile(assignmentId, submissionId) {
     } catch (err) {
         showToast('Failed to download file', 'error');
     }
-} 
+}
+
+// Make function globally available
+window.downloadSubmissionFile = downloadSubmissionFile;
+
+// Helper to download assignment file using direct file download
+async function downloadAssignmentFile(assignmentId) {
+    try {
+        const res = await fetch(`${API_URL}/assignments/${assignmentId}`, {
+            headers: {
+                'X-User-Email': localStorage.getItem('email') || '',
+                'X-User-Role': localStorage.getItem('role') || ''
+            }
+        });
+        if (!res.ok) throw new Error('Failed to get assignment');
+        const assignment = await res.json();
+        if (!assignment.file_path) throw new Error('No file');
+        // Use fetch with authentication headers
+        const fileRes = await fetch(`${API_URL}/files/${assignment.id}`, {
+            headers: {
+                'X-User-Email': localStorage.getItem('email') || '',
+                'X-User-Role': localStorage.getItem('role') || ''
+            }
+        });
+        if (!fileRes.ok) throw new Error('Failed to download file');
+        const disposition = fileRes.headers.get('Content-Disposition');
+        let filename = 'file';
+        if (disposition && disposition.indexOf('filename=') !== -1) {
+            filename = disposition.split('filename=')[1].replace(/['"]/g, '').trim();
+        }
+        const blob = await fileRes.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+    } catch (err) {
+        showToast('Failed to download assignment file', 'error');
+    }
+}
+
+// Make function globally available
+window.downloadAssignmentFile = downloadAssignmentFile; 

@@ -70,7 +70,7 @@
             <nav class="hidden md:flex space-x-2">
                 <a href="/course-recommendations/index.html" class="text-[var(--brand-primary)] font-medium px-4 py-2 rounded-md hover:bg-indigo-50 transition-colors">Courses</a>
                 <a href="/course-recommendations/index.html#about" class="text-[var(--text-secondary)] hover:text-[var(--brand-primary)] px-4 py-2 rounded-md hover:bg-indigo-50 transition-colors">About</a>
-                <a><!-- Profile link removed --></a>
+                
             </nav>
         </div>
         <button onclick="window.location.href='/course-recommendations/index.html'" class="bg-[var(--brand-primary)] text-white px-5 py-2.5 rounded-md flex items-center hover:bg-indigo-700 transition-colors text-sm font-medium">
@@ -112,7 +112,6 @@
                         <label>Description:<br>
                             <textarea id="module-description" rows="3" style="width:100%;"></textarea>
                         </label><br>
-                        <label>Order: <input type="number" id="module-order" value="0" required></label><br>
                         <label>Release Date (YYYY-MM-DD HH:MM): <input type="text" id="module-release-date" placeholder="2025-06-19 12:00"></label><br>
                         <button type="submit" class="btn btn-primary">Save Module</button>
                     </form>
@@ -158,6 +157,6 @@
             </form>
         </div>
     </div>
-    <script src="js/course-detail.v2.js"></script>
+    <script src="js/course-detail.v2.js?v=20250715"></script>
 </body>
 </html> 
